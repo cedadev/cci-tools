@@ -1,0 +1,184 @@
+{
+  "Aerosol":
+    {
+      "category": "atmospheric",
+      "label": "Aerosol",
+      "abstract": "The aerosol_cci project produces a set of global aerosol ECV products from European satellite instruments with substantially different characteristics and information content. Primary products include total column Aerosol Optical Depth (AOD), stratospheric aerosol extinction profiles and further information on aerosol type (fine mode fraction, absorption, mineral dust).",
+      "homepage": "https://climate.esa.int/projects/aerosol"
+    },
+  "Cloud":
+    {
+      "category": "atmospheric",
+      "label": "Cloud",
+      "abstract": "The ultimate objective of Cloud CCI is to provide long-term coherent cloud property data sets exploiting the  synergic capabilities of different Earth observation missions allowing for improved accuracies and enhanced temporal and spatial sampling better than those provided by the single sources. ",
+      "homepage": "https://climate.esa.int/projects/cloud"
+    },
+  "Greenhouse Gases":
+    {
+      "category": "atmospheric",
+      "label": "Greenhouse Gases",
+      "abstract": "Carbon dioxide (CO2) and methane (CH4) are the two most important anthropogenic greenhouse gases (GHGs). Satellite observations combined with modelling helps to improve our knowledge on CO2 and CH4 sources and sinks as required for better climate prediction. GHG-CCI aims at delivering the high quality satellite retrievals needed for this application.",
+      "homepage": "https://climate.esa.int/projects/ghgs"
+    },
+  "Ozone":
+    {
+      "category": "atmospheric",
+      "label": "Ozone",
+      "abstract": "Ozone_cci will: 1) Analyze the needs of the climate research community in terms of Ozone data; 2) Adapt the Ozone satellite measurements for their use by the climate research community; 3) Use Ozone data available in the ESA Earth observation archive, as well as Ozone data from Third Party Missions (TPM). (TPM data come from instruments owned by other parties than ESA)",
+      "homepage": "https://climate.esa.int/projects/ozone"
+    },
+  "Fire":
+    {
+      "category": "terrestrial",
+      "label": "Fire",
+      "abstract": "Current global burned area products already exist but the Fire_cci project aims to improve consistency using better algorithms for both pre-processing and burned area detection while incorporating error characterisation in their product. The project focuses on the key variable: burned area. It will incorporate active fire observations as a supplemental variable to improve detection of burned area across varying biomes.",
+      "homepage": "https://climate.esa.int/projects/fire"
+    },
+  "Antarctic Ice Sheet":
+    {
+      "category": "terrestrial",
+      "label": "Antarctic Ice Sheet",
+      "abstract": "The Antarctic_Ice Sheet_cci project aims to produce long term and reliable climate satellite data records required by the scientific user community. These datasets will improve understanding of present day change on the Antarctic Ice Sheet and provide data for models at a higher spatial and temporal resolution than is currently available, thereby improving estimates of future change.",
+      "homepage": "https://climate.esa.int/projects/ice-sheets-antarctic"
+    },
+  "Greenland Ice Sheet":
+    {
+      "category": "terrestrial",
+      "label": "Greenland Ice Sheet",
+      "abstract": "Over the last decade, the Greenland Ice Sheet has shown rapid change, characterized by rapid thinning along the margins, accelerating outlet glaciers, and overall increasing mass loss. The state of the Greenland Ice Sheet is of global importance, and has consequently been included in the CCI Programme as a monitored Essential Climate Variable (ECV).",
+      "homepage": "https://climate.esa.int/projects/ice-sheets-greenland"
+    },
+  "Land Cover":
+    {
+      "category": "terrestrial",
+      "label": "Land Cover",
+      "abstract": "The overall Land_Cover_cci objective is to critically revisit all algorithms required for the generation of a global land product in the light of GCOS requirements, and to design and demonstrate a prototype system delivering in a consistent way over years and from various EO instruments global land cover information matching the needs of key users’ belonging to the climate change community.",
+      "homepage": "https://climate.esa.int/projects/land-cover"
+    },
+  "Soil Moisture":
+    {
+      "category": "terrestrial",
+      "label": "Soil Moisture",
+      "abstract": "The important role of soil moisture for the environment and climate system is well known. Soil moisture influences hydrological and agricultural processes, runoff generation, drought development and many other processes. It also impacts on the climate system through atmospheric feedbacks. Soil moisture is a source of water for evapotranspiration over the continents, and is involved in both the water and the energy cycles. Soil moisture was recognised as an Essential Climate Variable (ECV) in 2010.",
+      "homepage": "https://climate.esa.int/projects/soil-moisture"
+    },
+  "Glaciers":
+    {
+      "category": "terrestrial",
+      "label": "Glaciers",
+      "abstract": "The main objective of the Glaciers_cci project is to contribute to the efforts of creating a globally complete and detailed glacier inventory as requested in action T2.1 by GCOS (2006). This activity has two major parts: One is data creation (glacier outlines) in selected and currently still missing key regions, and the other one is in establishing a more consistent framework for glacier entity identification to enhance the integrity and error characterization of the available data sets.",
+      "homepage": "https://climate.esa.int/projects/glaciers"
+    },
+  "Biomass":
+    {
+      "category": "terrestrial",
+      "label": "Above-Ground Biomass",
+      "abstract": "The primary science objective ESA’s Climate Change Initiative Biomass project (Biomass_cci) is to provide global maps of above-ground biomass (Mg ha-1) for four epochs (mid 1990s, 2007-2010, 2017/2018 and 2018/2019), with these being capable of supporting quantification of biomass change.",
+      "homepage": "https://climate.esa.int/projects/biomass"
+    },
+  "Above-Ground Biomass":
+    {
+      "category": "terrestrial",
+      "label": "Above-Ground Biomass",
+      "abstract": "The primary science objective ESA’s Climate Change Initiative Biomass project (Biomass_cci) is to provide global maps of above-ground biomass (Mg ha-1) for four epochs (mid 1990s, 2007-2010, 2017/2018 and 2018/2019), with these being capable of supporting quantification of biomass change.",
+      "homepage": "https://climate.esa.int/projects/biomass"
+    },
+  "Permafrost":
+    {
+      "category": "terrestrial",
+      "label": "Permafrost",
+      "abstract": "The ultimate objective of Permafrost_cci is to develop and deliver permafrost maps as ECV products primarily derived from satellite measurements. The required associated parameters by GCOS for the ECV Permafrost are 'Depth of active layer (m)' and 'Permafrost temperature (K)'. ",
+      "homepage": "https://climate.esa.int/projects/permafrost"
+    },
+  "Ocean Colour":
+    {
+      "category": "oceanic",
+      "label": "Ocean Colour",
+      "abstract": "The Ocean Colour CCI (OC_CCI) project focuses on the Ocean Colour ECV encompassing water-leaving radiance in the visible domain, derived chlorophyll and inherent optical properties and will utilise data archives of from ESA’s MERIS and NASA’s SeaWiFS, MODIS and possibly CZCS (after careful evaluation) sensors archives. It is also looking at the feasibility of using OCM-2 and VIIRS data as a \"gap filler\" before the launch of Sentinel-3.",
+      "homepage": "https://climate.esa.int/projects/ocean-colour"
+    },
+  "Sea Ice":
+    {
+      "category": "oceanic",
+      "label": "Sea Ice",
+      "abstract": "The ESA CCI Sea Ice project will combine and extend ongoing research to develop improved and validated timeseries of ice concentration and ice thickness for use in climate research. Since sea ice is a sensitive climate indicator with large seasonal and regional variability, the climate research community require long-term and regular observations of the key ice parameters in both Arctic and Antarctic. The project includes representatives from the scientific user community and climate research programmes to validate the ice concentration and ice thickness retrievals provided by the EO science team.",
+      "homepage": "https://climate.esa.int/projects/sea-ice"
+    },
+  "Sea Level":
+    {
+      "category": "oceanic",
+      "label": "Sea Level",
+      "abstract": "The global mean level of the oceans is an indicator of climate change. It incorporates the reactions from several different components of the climate system. Precise monitoring of changes in the mean level of the oceans is vitally important for understanding not just the climate but also the socioeconomic consequences of any rise in sea level. The Sea Level CCI project aims to produce and validate a Sea Level Essential Climate Variable (ECV) product.",
+      "homepage": "https://climate.esa.int/projects/sea-level"
+    },
+  "Sea Surface Temperature":
+    {
+      "category": "oceanic",
+      "label": "Sea Surface Temperature",
+      "abstract": "This website supports a project funded by the European Space Agency (ESA) as part of Phase 1 of the Agency’s Climate Change Initiative (CCI) Programme. The project team will focus on: 1) Analysis of scientific requirements relating to climate; 2) Development of improved scientific algorithms; 3) Inter-comparison and selection of algorithms; 4)     System prototyping and production of SST datasets; & 5) Product validation and end-user assessment. ",
+      "homepage": "https://climate.esa.int/projects/sea-surface-temperature"
+    },
+  "Sea Surface Salinity":
+    {
+      "category": "oceanic",
+      "label": "Sea Surface Salinity",
+      "abstract": "Sea Surface Salinity (SSS) is an Essential Climate Variable (ECV) that plays a fundamental role in the density-driven global ocean circulation, the water cycle, and climate.The CCI Sea Surface Salinity project aims at generating improved calibrated global SSS fields over 10 years period (2010-2019) from all available satellite L-band radiometer measurements, extended at regional scale to 2002-2019 from C-band radiometer measurements. ",
+      "homepage": "https://climate.esa.int/projects/sea-surface-salinity"
+    },
+  "Sea State":
+   {
+      "category": "oceanic",
+      "label": "Sea State",
+      "abstract": "The ultimate objective of SeaState_cci is to develop an initial 18-year data set (2002- 2020) capitalising on the rich satellite altimeter, SAR imager, in situ and other data holdings available during that period. The focus will be on the development, testing and improvement of dedicated sea state retrieval algorithms with respect to climate users' requirements, as compiled at high level by GCOS.",
+      "homepage": "https://climate.esa.int/projects/sea-state"
+    },
+  "Lakes":
+    {
+      "category": "terrestrial",
+      "label": "Lakes",
+      "abstract": "The overarching objective of the Lakes_cci project is to produce and validate a consistent data set of the variables grouped under the Lakes Essential Climate Variable. This includes aiming for the longest period of combined satellite observations by designing and operating processing chains, designed to be ultimately feature in a sustainable production system. The Lakes project covers multiple variables (Lake Water Level, Lake Water Extent, Lake Surface Water temperature, Lake Ice Cover and Thickness, and Lake Surface Reflectance). ",
+      "homepage": "https://climate.esa.int/projects/lakes"
+    },
+  "Snow":
+    {
+      "category": "terrestrial",
+      "label": "Snow",
+      "abstract": "The ultimate objective of Snow CCI is to generate homogenized long-time series of daily global snow extent maps from optical satellite data and daily global snow water equivalent products from passive microwave satellite data. ",
+      "homepage": "https://climate.esa.int/projects/snow"
+    },
+  "Land Surface Temperature":
+   {
+      "category": "terrestrial",
+      "label": "Land Surface Temperature",
+      "abstract": "The Land Surface Temperature CCI aims to provide an accurate view of temperatures across land surfaces globally over the past 20 to 25 years and meet the requirements of Global Climate Observing System (GCOS)  for climate applications by developing techniques to merge archived data from a variety of satellites into a combined long-term satellite record for climate. ",
+      "homepage": "https://climate.esa.int/projects/land-surface-temperature"
+    },
+  "High Resolution Land Cover":
+    {
+      "category": "terrestrial",
+      "label": "High Resolution Land Cover",
+      "abstract": "The primary objective of High Resolution Land Cover CCI is to study and investigate the role of the spatial resolution of land cover and land cover change in supporting climate modelling research at regional scale.  It aims at improving the understanding of the interaction between climate and land cover while increasing the spatial resolution of 1 order of magnitude (from 300m to 10-30m) with respect to the Land Cover CCI",
+      "homepage": "https://climate.esa.int/projects/high-resolution-land-cover"
+    },
+  "Water Vapour":
+    {
+      "category": "atmospheric",
+      "label": "Water Vapour",
+      "abstract": "The ultimate objective of the Water_Vapour_cci is to generate new global high-quality climate data records of both total column and vertically resolved water vapour, which are homogeneous in space and time, work towards fulfilling GCOS requirements, and respond to the user needs of the climate research community in the best possible way.",
+      "homepage": "https://climate.esa.int/projects/water-vapour"
+    },
+  "Vegetation Parameters":
+    {
+      "category": "terrestrial",
+      "label": "Vegetation Parameters",
+      "abstract": "Terrestrial vegetation plays a major role in the climate system through primary productivity by photosynthesis and respiration, recycling of precipitation, and soil formation. Two essential climate variables (ECVs) that describe the state of the vegetation are the Leaf Area Index (LAI) and fraction of incident surface solar radiation in the photosynthetically active region (0.4-0.7 μm) absorbed by vegetation (FAPAR). Consistent, global time series of LAI and FAPAR can provide insight into the dynamic role of vegetation in the Earth's climate.",
+      "homepage": "https://climate.esa.int/projects/vegetation-parameters"
+    },
+  "River Discharge":
+  {
+    "category": "terrestrial",
+    "label": "River Discharge",
+    "abstract": "This project aims to produce and validate a consistent data set of the variables grouped under the River Discharge Essential Climate Variable.",
+    "homepage": "https://climate.esa.int/projects/river-discharge"
+  }
+}

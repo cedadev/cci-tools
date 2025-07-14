@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "cci-tools"
+version = "0.1.0"
+description = "Package containing many cci scripts in the tools folder"
+authors = ["Daniel Westwood <daniel.westwood@stfc.ac.uk>"]
+license = "BSD 3"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+argparse = "^1.4.0"
+requests = "^2.32.4"
+urllib3 = "^2.5.0"
+httpx = "^0.28.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

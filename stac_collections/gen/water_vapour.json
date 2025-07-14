@@ -1,0 +1,86 @@
+{
+    "id": "water_vapour2",
+    "description": "The ultimate objective of the Water_Vapour_cci is to generate new global high-quality climate data records of both total column and vertically resolved water vapour, which are homogeneous in space and time, work towards fulfilling GCOS requirements, and respond to the user needs of the climate research community in the best possible way.",
+    "stac_version": "1.1.0",
+    "stac_extensions": [],
+    "title": "Water Vapour",
+    "type": "Collection",
+    "license": "other",
+    "links": [
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+        },
+        {
+            "rel": "aggregate",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/water_vapour/aggregate"
+        },
+        {
+            "rel": "aggregations",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/water_vapour/aggregations"
+        },
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/water_vapour/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/antarctic_ice_sheet"
+        },
+        {
+            "rel": "queryables",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/water_vapour/queryables"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/water_vapour"
+        }
+    ],
+    "assets": {
+        "thumbnail": {
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg"
+        }
+    },
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2002-07-01T00:00:00Z",
+                    "2017-12-31T00:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "ESACCI",
+        "Water Vapour",
+        "water_vapour"
+    ],
+    "providers": [],
+    "summaries": {
+        "project": [
+            "Water Vapour"
+        ]
+    }
+}

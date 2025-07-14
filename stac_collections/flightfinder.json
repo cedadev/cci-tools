@@ -1,0 +1,102 @@
+{
+    "id": "flights",
+    "description": "Top Level Collection for Climate Change Initiative Data - Prototype",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "aggregate",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/flights/aggregate"
+        },
+        {
+            "rel": "aggregations",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/flights/aggregations"
+        },
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/flights/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+        },
+        {
+            "rel": "queryables",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/flights/queryables"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/flights"
+        },
+        {
+            "href": "https://api.stac.ceda.ac.uk/collections/flights/aggregate",
+            "rel": "aggregate",
+            "type": "application/json"
+        },
+        {
+            "href": "https://api.stac.ceda.ac.uk/collections/flights/aggregations",
+            "rel": "aggregations",
+            "type": "application/json"
+        },
+        {
+            "href": "https://api.stac.ceda.ac.uk/collections/flights/queryables",
+            "rel": "queryables",
+            "type": "application/json"
+        }
+    ],
+    "stac_extensions": [],
+    "title": "CCI Flight Records Collection",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "https://pbs.twimg.com/profile_images/1572137251412344832/CP_nGYqH_400x400.jpg",
+            "type": "image/jpg"
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    179.99999991618097,
+                    89.99999995809048
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1960-01-01T00:00:00Z",
+                    "2025-05-05T12:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "FAAM",
+        "ARSF"
+    ],
+    "providers": [],
+    "summaries": {
+        "organisation":[
+            "FAAM",
+            "ARSF"
+        ]
+    }
+}
+        

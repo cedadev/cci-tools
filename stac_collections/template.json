@@ -1,0 +1,36 @@
+{
+  "id": null,
+  "description": null,
+  "stac_version": "1.1.0",
+  "stac_extensions": [],
+  "title": null,
+  "type": "Collection",
+  "license": "other",
+  "links": [
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+    }
+  ],
+  "assets": {
+    "thumbnail": {
+      "roles": [
+        "thumbnail"
+      ],
+      "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+      "type": "image/jpg"
+    }
+  },
+  "extent": {
+    "spatial": {
+      "bbox": null
+    },
+    "temporal": {
+      "interval": null
+    }
+  },
+  "keywords": null,
+  "providers": [],
+  "summaries": null
+}

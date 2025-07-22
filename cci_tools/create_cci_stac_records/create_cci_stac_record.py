@@ -4,8 +4,9 @@ This script performs an elasticsearch query for the directory defined in variabl
 and then converts the opensearch record output to STAC format.
 
 Currently run from the command line using:
-python create_cci_stac_record.py 
+python create_cci_stac_record.py cci_dir
 
+e.g. python create_cci_stac_record.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf
 """
 from elasticsearch import Elasticsearch
 import elasticsearch.helpers
@@ -13,6 +14,7 @@ import pandas as pd
 import json 
 import requests
 import os
+import click
 
 def get_query(directory):
     query = {
@@ -40,6 +42,8 @@ def process_record(es_all_dict:dict, output_dir:str):
     fname = str(es_all_dict['info'].get('name'))
     file_id, file_ext = os.path.splitext(fname)
     #id = fname.partition('.nc')[0]
+
+    print('Creating STAC record for file: '+fname)
 
     #=== Collection ===
     ecv = es_all_dict['projects']['opensearch'].get('ecv')
@@ -156,38 +160,42 @@ def process_record(es_all_dict:dict, output_dir:str):
 
     # Create directory for each CCI ECV/Project
     cci_stac_dir=output_dir+ecv+'/'
-    try:
-        os.mkdir(cci_stac_dir)
-        print(f"Created directory '{cci_stac_dir}' successfully")
-    except FileExistsError:
-        print(f"Directory '{cci_stac_dir}' already exists")
-    except PermissionError:
-        print(f"Permission denied: Unable to make '{cci_stac_dir}'")
-    except Exception as e:
-        print(f"An error occured '{e}'")
+
+    if os.path.isdir(cci_stac_dir)==False:
+        try:
+            os.mkdir(cci_stac_dir)
+            print(f"Created directory '{cci_stac_dir}' successfully")
+        except PermissionError:
+            print(f"Permission denied: Unable to make '{cci_stac_dir}'")
+        except Exception as e:
+            print(f"An error occured '{e}'")
 
     # Write 'pretty print' STAC json file
     with open(cci_stac_dir+'stac_'+file_id+'-'+file_ext[1:]+'.json', 'w', encoding='utf-8') as file:
         json.dump(stac_dict, file, ensure_ascii=False, indent=2)
 
 
+# Parse command line arguments using click
+@click.command()
+@click.argument('cci_dir', type=click.Path(exists=True))
+
 ##### MAIN PROGRAM #####
 
-# Define CCI dataset to query
-#cci_dir = '/neodc/esacci/river_discharge/data/WL/v1.1/NetCDF'
-#cci_dir = '/neodc/esacci/river_discharge/data/RD/RD-combined/v1.0/NetCDF'
-#cci_dir = '/neodc/esacci/river_discharge/data/RD/RD-ALTI/v1.0/NetCDF'
-#cci_dir = '/neodc/esacci/lakes/data/lake_products/L3S/v2.1/LIT' 
-#cci_dir = '/neodc/esacci/lakes/data/lake_products/L3S/v2.1/merged_product' 
-cci_dir = '/neodc/esacci/biomass/data/agb/maps/v6.0/netcdf'
-output_dir = '/gws/nopw/j04/esacci_portal/stac/stac_records/'
+def main(cci_dir):
 
-# Setup client and query elasticsearch
-client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'])
-response = elasticsearch.helpers.scan(client, 
-                                      query=get_query(cci_dir), 
-                                      index="opensearch-files")
+    # Define path for output stac directory/records
+    output_dir = '/gws/nopw/j04/esacci_portal/stac/stac_records/'
 
-# Loop over OpenSearch records, converting each to STAC format
-for record in response:
-    process_record(record['_source'], output_dir)
+    # Setup client and query elasticsearch
+    client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'])
+    response = elasticsearch.helpers.scan(client, 
+                                          query=get_query(cci_dir), 
+                                          index="opensearch-files")
+    
+    # Loop over OpenSearch records, converting each to STAC format
+    for record in response:
+        process_record(record['_source'], output_dir)
+
+
+if __name__ == "__main__":
+    main()

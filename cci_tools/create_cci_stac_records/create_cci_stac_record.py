@@ -43,8 +43,6 @@ def process_record(es_all_dict:dict, output_dir:str):
     file_id, file_ext = os.path.splitext(fname)
     #id = fname.partition('.nc')[0]
 
-    print('Creating STAC record for file: '+fname)
-
     #=== Collection ===
     ecv = es_all_dict['projects']['opensearch'].get('ecv')
 
@@ -169,10 +167,14 @@ def process_record(es_all_dict:dict, output_dir:str):
             print(f"Permission denied: Unable to make '{cci_stac_dir}'")
         except Exception as e:
             print(f"An error occured '{e}'")
+    
+    stac_file=cci_stac_dir+'stac_'+file_id+'-'+file_ext[1:]+'.json'
 
     # Write 'pretty print' STAC json file
-    with open(cci_stac_dir+'stac_'+file_id+'-'+file_ext[1:]+'.json', 'w', encoding='utf-8') as file:
+    with open(stac_file, 'w', encoding='utf-8') as file:
         json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+    
+    print('Created STAC record: '+stac_file)
 
 
 # Parse command line arguments using click

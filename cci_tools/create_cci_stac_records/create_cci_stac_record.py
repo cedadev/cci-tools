@@ -9,6 +9,7 @@ python create_cci_stac_record.py cci_dir
 e.g. python create_cci_stac_record.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf /gws/nopw/j04/esacci_portal/stac/stac_records
 """
 from elasticsearch import Elasticsearch
+from datetime import datetime
 import elasticsearch.helpers
 import json 
 import requests
@@ -23,8 +24,8 @@ def get_query(directory):
             "bool": {
                 "must": [
                     {
-                        "match_phrase_prefix": {
-                            "info.directory.analyzed": directory
+                        "prefix": {
+                            "info.directory": directory
                         }
                     },
                     {
@@ -34,7 +35,7 @@ def get_query(directory):
                     }
                 ]
             }
-        }
+        }, "sort": [{"info.directory": {"order": "asc"}}, {"info.name": {"order": "asc"}}], "size": 10
     }
     return query
 
@@ -127,20 +128,24 @@ def read_geotiff(geotiff_file:str):
 
         metadata = src.tags()
         try:
-            start_datetime=metadata['time_coverage_start']
+            start_dt=metadata['time_coverage_start']
+            dt_object=datetime.strptime(start_dt,"%Y%m%dT%H%M%SZ")
+            start_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+            end_dt=metadata['time_coverage_end']
+            dt_object=datetime.strptime(end_dt,"%Y%m%dT%H%M%SZ")
+            end_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception as e:
             print(f"An error occured '{e}'")
             return None, None
 
-        end_datetime=metadata['time_coverage_end']
         version = metadata['product_version']
         platforms = metadata['platform']
         drs = "TEMP"
 
-        bbox_w = metadata['geospatial_lon_min'] # west
-        bbox_n = metadata['geospatial_lat_max'] # north
-        bbox_e = metadata['geospatial_lon_max'] # east
-        bbox_s = metadata['geospatial_lat_min'] # south
+        bbox_w = float(metadata['geospatial_lon_min']) # west
+        bbox_n = float(metadata['geospatial_lat_max']) # north
+        bbox_e = float(metadata['geospatial_lon_max']) # east
+        bbox_s = float(metadata['geospatial_lat_min']) # south
         bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
 
         geo_type = 'Polygon'
@@ -169,7 +174,7 @@ def read_geotiff(geotiff_file:str):
     
     return stac_info, properties
 
-def process_record(es_all_dict:dict, STAC_API:str):
+def process_record(es_all_dict:dict, STAC_API:str)->tuple:
     # Extract filename, file id, and file extension
     fname, file_id, file_ext = extract_id(es_all_dict)
 
@@ -193,7 +198,7 @@ def process_record(es_all_dict:dict, STAC_API:str):
 
         if isinstance(stac_info, dict) == False:
             print("Error: OpenSearch record does not contain the required information to create a STAC record.")
-            return
+            return None, None
 
     elif file_ext=='.tif':
         # === GeoTIFF ===
@@ -203,7 +208,7 @@ def process_record(es_all_dict:dict, STAC_API:str):
 
         if isinstance(stac_info, dict) == False:
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
-            return
+            return None, None
 
     else:
         print("Error: File format not recognised!")
@@ -221,7 +226,7 @@ def process_record(es_all_dict:dict, STAC_API:str):
         "collection": stac_info["drs"],
         "geometry": {
             "type": stac_info["geo_type"],
-            "coordinates": stac_info["coordinates"]
+            "coordinates": [stac_info["coordinates"]]
         },
         "bbox": stac_info["bbox"],
         "properties": {
@@ -290,7 +295,7 @@ def main(cci_dir, output_dir):
 
     For NetCDF files, information is extracted from the OpenSearch record only.
 
-    For GeoTIFF files, only partial information is available within the OpenSearch record, so additoinal metadata is extracted from the GeoTIFF file itself.
+    For GeoTIFF files, only partial information is available within the OpenSearch record, so additional metadata is extracted from the GeoTIFF file itself.
     '''
 
     print(f"Input CCI directory: {cci_dir}")
@@ -298,37 +303,57 @@ def main(cci_dir, output_dir):
     STAC_API = 'https://api.stac.ceda.ac.uk'
 
     # Setup client and query elasticsearch
-    client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'])
-    response = elasticsearch.helpers.scan(client, 
-                                          query=get_query(cci_dir), 
-                                          index="opensearch-files")
+    with open('API_CREDENTIALS') as f:
+        api_creds = json.load(f)
+        API_KEY = api_creds["secret"]
+
+    client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'],
+                           headers={'x-api-key':API_KEY}
+                           )
+
+    body=get_query(cci_dir)
+    response = client.search(index='opensearch-files', body=body)
     
     # Loop over OpenSearch records, converting each to STAC format
-    for record in response:
-        # Process OpenSearch record
-        stac_dict, file_ext = process_record(record['_source'], STAC_API)
+    is_last = False
+    while len(response['hits']['hits']) == 10 or not is_last:
 
-        # Create directory for each CCI ECV/Project
-        ecv_dir=stac_dict["properties"]["collections"][0]
-        cci_stac_dir=f"{output_dir}/{ecv_dir}/"
+        if len(response['hits']['hits']) != 10:
+            is_last = True
 
-        if os.path.isdir(cci_stac_dir)==False:
-            try:
-                os.mkdir(cci_stac_dir)
-                print(f"Created directory '{cci_stac_dir}' successfully")
-            except PermissionError:
-                print(f"Permission denied: Unable to make '{cci_stac_dir}'")
-            except Exception as e:
-                print(f"An error occured '{e}'")
-    
-        # Write 'pretty print' STAC json file
-        id=stac_dict["id"]
-        stac_file=f"{cci_stac_dir}stac_{id}-{file_ext[1:]}.json"
+        for record in response['hits']['hits']:
+            # Process OpenSearch record
+            stac_dict, file_ext = process_record(record['_source'], STAC_API)
 
-        with open(stac_file, 'w', encoding='utf-8') as file:
-            json.dump(stac_dict, file, ensure_ascii=False, indent=2)
-    
-        print(f"Created STAC record: {stac_file}")
+            if isinstance(stac_dict, dict) == False:
+                print(f"Unable to create STAC record.")
+                continue
+
+            # Create directory for each CCI ECV/Project
+            ecv_dir=stac_dict["properties"]["collections"][0]
+            cci_stac_dir=f"{output_dir}/{ecv_dir}/"
+
+            if os.path.isdir(cci_stac_dir)==False:
+                try:
+                    os.mkdir(cci_stac_dir)
+                    print(f"Created directory '{cci_stac_dir}' successfully")
+                except PermissionError:
+                    print(f"Permission denied: Unable to make '{cci_stac_dir}'")
+                except Exception as e:
+                    print(f"An error occured '{e}'")
+        
+            # Write 'pretty print' STAC json file
+            id=stac_dict["id"]
+            stac_file=f"{cci_stac_dir}stac_{id}-{file_ext[1:]}.json"
+
+            with open(stac_file, 'w', encoding='utf-8') as file:
+                json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+        
+            print(f"Created STAC record: {stac_file}")
+
+        searchAfter = response['hits']['hits'][-1]["sort"]
+        body['search_after'] = searchAfter
+        response = client.search(index='opensearch-files', body=body)
 
 if __name__ == "__main__":
     main()

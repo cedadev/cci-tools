@@ -10,7 +10,7 @@
     {
       "rel": "root",
       "type": "application/json",
-      "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+      "href": "STAC_API"
     }
   ],
   "assets": {

@@ -1,19 +1,26 @@
-[tool.poetry]
+[project]
 name = "cci-tools"
 version = "0.1.0"
 description = "Package containing many cci scripts in the tools folder"
-authors = ["Daniel Westwood <daniel.westwood@stfc.ac.uk>"]
-license = "BSD 3"
+authors = [
+    {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
+]
 readme = "README.md"
-
-[tool.poetry.dependencies]
-python = "^3.9"
-argparse = "^1.4.0"
-requests = "^2.32.4"
-urllib3 = "^2.5.0"
-httpx = "^0.28.1"
+requires-python = ">=3.10,<3.11"
+dependencies = [
+    "argparse (>=1.4,<2.0)",
+    "requests (>=2.32.4,<3.0.0)",
+    "urllib3 (>=2.5,<3.0)",
+    "httpx (>=0.28,<0.29)",
+    "openeo[localprocessing] (>=0.43.0,<0.44.0)",
+    "xarray (>=2024,<2025)",
+    "pystac-client (<=0.8.4)",
+    "openeo-processes-dask (==2025.7.1)",
+    "rasterio (>=1.4.3,<2.0.0)",
+    "rio-cogeo (>=5.4.2,<6.0.0)"
+]
 
 
 [build-system]
-requires = ["poetry-core"]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"

@@ -17,7 +17,9 @@ dependencies = [
     "pystac-client (<=0.8.4)",
     "openeo-processes-dask (==2025.7.1)",
     "rasterio (>=1.4.3,<2.0.0)",
-    "rio-cogeo (>=5.4.2,<6.0.0)"
+    "rio-cogeo (>=5.4.2,<6.0.0)",
+    "elasticsearch (>=9.1.0,<10.0.0)",
+    "httpx-auth (>=0.23.1,<0.24.0)"
 ]
 
 

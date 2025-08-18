@@ -399,6 +399,51 @@ urllib3 = ">=1.26.5"
 zict = ">=3.0.0"
 
 [[package]]
+name = "elastic-transport"
+version = "9.1.0"
+description = "Transport classes and utilities shared among Python Elastic client libraries"
+optional = false
+python-versions = ">=3.8"
+groups = ["main"]
+files = [
+    {file = "elastic_transport-9.1.0-py3-none-any.whl", hash = "sha256:369fa56874c74daae4ea10cbf40636d139f38f42bec0e006b9cd45a168ee7fce"},
+    {file = "elastic_transport-9.1.0.tar.gz", hash = "sha256:1590e44a25b0fe208107d5e8d7dea15c070525f3ac9baafbe4cb659cd14f073d"},
+]
+
+[package.dependencies]
+certifi = "*"
+urllib3 = ">=1.26.2,<3"
+
+[package.extras]
+develop = ["aiohttp", "furo", "httpx", "opentelemetry-api", "opentelemetry-sdk", "orjson", "pytest", "pytest-asyncio", "pytest-cov", "pytest-httpbin", "pytest-httpserver", "pytest-mock", "requests", "respx", "sphinx (>2)", "sphinx-autodoc-typehints", "trustme"]
+
+[[package]]
+name = "elasticsearch"
+version = "9.1.0"
+description = "Python client for Elasticsearch"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "elasticsearch-9.1.0-py3-none-any.whl", hash = "sha256:96bb473dc70dbd94c37c4b05a0d2511af95d1b2db1657796f42546ef631cbbe4"},
+    {file = "elasticsearch-9.1.0.tar.gz", hash = "sha256:764d2f724eac94f6bf9903e4feae07112643a9efcfdc5c868c1b69bd48c52e09"},
+]
+
+[package.dependencies]
+elastic-transport = ">=9.1.0,<10"
+python-dateutil = "*"
+typing-extensions = "*"
+
+[package.extras]
+async = ["aiohttp (>=3,<4)"]
+dev = ["aiohttp", "black", "build", "coverage", "isort", "jinja2", "mapbox-vector-tile", "mypy", "nltk", "nox", "numpy", "orjson", "pandas", "pyarrow", "pyright", "pytest", "pytest-asyncio", "pytest-cov", "pytest-mock", "python-dateutil", "pyyaml (>=5.4)", "requests (>=2,<3)", "sentence-transformers", "simsimd", "tqdm", "twine", "types-python-dateutil", "types-tqdm", "unasync"]
+docs = ["sphinx", "sphinx-autodoc-typehints", "sphinx-rtd-theme (>=2.0)"]
+orjson = ["orjson (>=3)"]
+pyarrow = ["pyarrow (>=1)"]
+requests = ["requests (>=2.4.0,!=2.32.2,<3.0.0)"]
+vectorstore-mmr = ["numpy (>=1)", "simsimd (>=3)"]
+
+[[package]]
 name = "exceptiongroup"
 version = "1.3.0"
 description = "Backport of PEP 654 (exception groups)"
@@ -627,6 +672,24 @@ cli = ["click (==8.*)", "pygments (==2.*)", "rich (>=10,<14)"]
 http2 = ["h2 (>=3,<5)"]
 socks = ["socksio (==1.*)"]
 zstd = ["zstandard (>=0.18.0)"]
+
+[[package]]
+name = "httpx-auth"
+version = "0.23.1"
+description = "Authentication for HTTPX"
+optional = false
+python-versions = ">=3.9"
+groups = ["main"]
+files = [
+    {file = "httpx_auth-0.23.1-py3-none-any.whl", hash = "sha256:04f8bd0824efe3d9fb79690cc670b0da98ea809babb7aea04a72f334d4fd5ec5"},
+    {file = "httpx_auth-0.23.1.tar.gz", hash = "sha256:27b5a6022ad1b41a303b8737fa2e3e4bce6bbbe7ab67fed0b261359be62e0434"},
+]
+
+[package.dependencies]
+httpx = "==0.28.*"
+
+[package.extras]
+testing = ["pyjwt (==2.*)", "pytest-asyncio (==0.25.*)", "pytest-cov (==6.*)", "pytest_httpx (==0.35.*)", "time-machine (==2.*)"]
 
 [[package]]
 name = "idna"
@@ -2605,4 +2668,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.10,<3.11"
-content-hash = "fd7a06147026a2b6dfd4ea910093980e1e141e12949307ce4cf573e0bb241d57"
+content-hash = "9d140baac1c4bb9a7c61718cc8672655a5f1540ad173350ec02453137098b7dc"

@@ -196,7 +196,7 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
 
         stac_info, properties = extract_opensearch(es_all_dict)
 
-        if isinstance(stac_info, dict) == False:
+        if not isinstance(stac_info, dict):
             print("Error: OpenSearch record does not contain the required information to create a STAC record.")
             return None, None
 
@@ -206,7 +206,7 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
 
         stac_info, properties = read_geotiff(location+"/"+fname)
 
-        if isinstance(stac_info, dict) == False:
+        if not isinstance(stac_info, dict):
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
             return None, None
 
@@ -300,7 +300,7 @@ def main(cci_dir, output_dir):
 
     print(f"Input CCI directory: {cci_dir}")
     print(f"Output STAC record directory: {output_dir}")
-    STAC_API = 'https://api.stac.ceda.ac.uk'
+    STAC_API = 'https://api.stac.164.30.69.113.nip.io'
 
     # Setup client and query elasticsearch
     with open('API_CREDENTIALS') as f:

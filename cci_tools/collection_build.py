@@ -17,6 +17,8 @@ client = Client(
     timeout=180,
 )
 
+STAC_API = 'https://api.stac.164.30.69.113.nip.io'
+
 with open('AUTH_CREDENTIALS') as f:
     creds = json.load(f)
 
@@ -36,16 +38,24 @@ with open('config/projects.json') as f:
 with open('stac_collections/cci.json') as f:
     cci = json.load(f)
 
+with open('stac_collections/openeo.json') as f:
+    openeo = json.load(f)
+
 with open('stac_collections/template.json') as f:
     template = json.load(f)
 
-def create_aggregation_collection(agg, feature):
+def create_aggregation_collection(agg, feature, parent_suffix='cci'):
+
+    if parent_suffix == 'cci':
+        parent_suffix = ''
 
     aggregation = copy.deepcopy(template)
 
     id = agg['id']
     if id == "":
-        id = 'main'
+        id = feature['id'] + '-main' # -main of parent
+    else:
+        id = id + parent_suffix
 
     aggregation['id'] = id
     aggregation['description'] = agg['description_url']
@@ -56,29 +66,42 @@ def create_aggregation_collection(agg, feature):
     feature['links'].append({
         "rel" : "child",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}"
+        "href": f"{STAC_API}/collections/{id}"
     })
 
-    response = client.post(
-        "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections",
-        json=aggregation,
-        auth=auth,
-    )
-    print(f'{id}:{response}')
+    if not dryrun:
+        response = client.put(
+            f"{STAC_API}/collections/{id}",
+            json=aggregation,
+            auth=auth,
+        )
+        if response.status_code not in [200,201]:
+            response = client.post(
+                f"{STAC_API}/collections",
+                json=aggregation,
+                auth=auth,
+            )
+
+        print(f' > > {id}: {response}')
+    else:
+        print(f' > > {id}: Skipped')
 
     return feature
 
-def create_subcollections(project, tmpl, pid):
+def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
+
+    if parent_suffix == 'cci':
+        parent_suffix = ''
 
     if project not in content:
-        print(f"Cannot create subcollections for {project} at this time")
+        print(f" > Cannot create subcollections for {project} at this time")
         return tmpl
     
     for fc in content[project]['feature_collection']:
         feature = copy.deepcopy(template)
 
-        id = fc['id']
-        feature['id'] = fc['id']
+        id = fc['id'] + parent_suffix
+        feature['id'] = id
         feature['description'] = fc['abstract'] + '\n\n' + fc['url']
         feature['title'] = fc['feature_title']
 
@@ -108,55 +131,67 @@ def create_subcollections(project, tmpl, pid):
         feature['links'].append({
             "rel": "aggregate",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/aggregate"
+            "href": f"{STAC_API}/collections/{id}/aggregate"
         })
         feature['links'].append({
             "rel": "aggregations",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/aggregations"
+            "href": f"{STAC_API}/collections/{id}/aggregations"
         })
         feature['links'].append({
             "rel": "items",
             "type": "application/geo+json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/items"
+            "href": f"{STAC_API}/collections/{id}/items"
         })
         feature['links'].append({
             "rel": "parent",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{pid}"
+            "href": f"{STAC_API}/collections/{pid}"
         })
         feature['links'].append({
             "rel": "queryables",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/queryables"
+            "href": f"{STAC_API}/collections/{id}/queryables"
         })
         feature['links'].append({
             "rel": "self",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}"
+            "href": f"{STAC_API}/collections/{id}"
         })
 
         if project == 'Biomass':
             for agg in fc['aggregations']:
-                feature = create_aggregation_collection(agg, feature)
+                feature = create_aggregation_collection(agg, feature, parent_suffix=parent_suffix)
 
         tmpl['links'].append({
             "rel" : "child",
             "type": "application/json",
-            "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}"
+            "href": f"{STAC_API}/collections/{id}"
         })
 
-        response = client.put(
-            f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}",
-            json=feature,
-            auth=auth,
-        )
-        print(f'{id}: {response}')
+        if not dryrun:
+            response = client.put(
+                f"{STAC_API}/collections/{id}",
+                json=feature,
+                auth=auth,
+            )
+            if response.status_code not in [200,201]:
+                response = client.post(
+                    f"{STAC_API}/collections/",
+                    json=feature,
+                    auth=auth,
+                )
+            print(f' > {id}: {response}')
+
+        else:
+            print(f' > {id}: Skipped')
 
     return tmpl
 
+def create_project_collection(project, parent, parent_suffix='cci'):
 
-def create_project_collection(project, cci):
+    if parent_suffix == 'cci':
+        parent_suffix = ''
 
     tmpl = copy.deepcopy(template)
 
@@ -165,7 +200,7 @@ def create_project_collection(project, cci):
     else:
         id = project.replace('-','_')
 
-    tmpl['id'] = id
+    tmpl['id'] = id + parent_suffix
     c3s_coverage = None
     if project in projects:
         tmpl['description'] = projects[project]['abstract']
@@ -192,38 +227,38 @@ def create_project_collection(project, cci):
     }
 
     if id == 'greenland_ice_sheet' or id == 'biomass':
-        tmpl = create_subcollections(project, tmpl, id)
+        tmpl = create_subcollections(project, tmpl, id, parent_suffix=parent_suffix)
 
     tmpl['links'].append({
         "rel": "aggregate",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/aggregate"
+        "href": f"{STAC_API}/collections/{id}/aggregate"
     })
     tmpl['links'].append({
         "rel": "aggregations",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/aggregations"
+        "href": f"{STAC_API}/collections/{id}/aggregations"
     })
     tmpl['links'].append({
         "rel": "parent",
         "type": "application/json",
-        "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci"
+        "href": f"{STAC_API}/collections/{parent['id']}"
     })
     tmpl['links'].append({
         "rel": "queryables",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}/queryables"
+        "href": f"{STAC_API}/collections/{id}/queryables"
     })
     tmpl['links'].append({
         "rel": "self",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}"
+        "href": f"{STAC_API}/collections/{id}"
     })
 
-    cci['links'].append({
+    parent['links'].append({
         "rel" : "child",
         "type": "application/json",
-        "href": f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}"
+        "href": f"{STAC_API}/collections/{id}"
     })
 
     tmpl['extent'] = {
@@ -247,18 +282,24 @@ def create_project_collection(project, cci):
     if dryrun:
         with open(f'stac_collections/gen/{id}.json','w') as f:
             f.write(json.dumps(tmpl))
+        print(f'{id}: Local')
     else:
-        print(f"Posting {id}")
         response = client.put(
-            f"https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/{id}",
+            f"{STAC_API}/collections/{id}",
             json=tmpl,
             auth=auth,
         )
-        print(response)
+        if response.status_code not in [200,201]:
+            response = client.post(
+                f"{STAC_API}/collections/",
+                json=tmpl,
+                auth=auth,
+            )
+        print(f'{id}: {response}')
 
 
     tmpl = {}
-    return cci
+    return parent
 
 if __name__ == '__main__':
 
@@ -271,7 +312,9 @@ if __name__ == '__main__':
         projects = json.load(f)
 
     with open('stac_collections/template.json') as f:
-        template = json.load(f)
+        temp = ''.join(f.readlines()).replace('STAC_API',STAC_API)
+        
+    template = json.loads(temp)
 
     top_ignore = ["facet_config","ecv_labels","ecv_title_ids","full_search_results"]
     keys = [c for c in content.keys() if c not in top_ignore]
@@ -279,13 +322,24 @@ if __name__ == '__main__':
     for project in (keys + ['reccap2','sea-level-budget-closure']):
         
         print(f'Creating {project}')
-        cci = create_project_collection(project, cci)
+        #cci    = create_project_collection(project, cci)
+        if project == 'Biomass':
+            openeo = create_project_collection(project, openeo, parent_suffix='.openeo')
 
 
-    response = client.put(
-        "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci",
-        json=cci,
-        auth=auth,
-    )
-    print(response)
+    if not dryrun:
+        response = client.put(
+            f"{STAC_API}/collections/cci",
+            json=cci,
+            auth=auth,
+        )
+        if response.status_code not in [200,201]:
+            response = client.post(
+                f"{STAC_API}/collections",
+                json=cci,
+                auth=auth,
+            )
+        print(f'CCI: {response}')
+    else:
+        print('CCI: Skipped')
     

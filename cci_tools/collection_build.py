@@ -44,12 +44,38 @@ with open('stac_collections/openeo.json') as f:
 with open('stac_collections/template.json') as f:
     template = json.load(f)
 
+def get_opensearch_record(moles_id, drs_id):
+
+    url = f"https://archive.opensearch.ceda.ac.uk/opensearch/request?parentIdentifier={moles_id}&drsId={drs_id}&httpAccept=application/geo%2Bjson&maximumRecords=20&startPage=1"
+
+    print(url, client.get(url))
+
+    return client.get(url).json()
+
 def create_aggregation_collection(agg, feature, parent_suffix='cci'):
+    """
+    ODP Aggregation - CEDA DRS
+    """
 
     if parent_suffix == 'cci':
         parent_suffix = ''
 
     aggregation = copy.deepcopy(template)
+
+    extent = feature['extent']
+    if agg['id'] is not None and agg['id'] != '':
+        opensearch_record = get_opensearch_record(
+            feature['id'].replace(parent_suffix,''), 
+            agg['id'].replace(parent_suffix,''))
+        
+        dates = []
+        for i in opensearch_record['features']:
+            dates += i['properties']['date'].split('/')
+
+        dates = sorted(dates)
+
+        extent['temporal']['interval'][0] = [dates[0], dates[-1]]
+    
 
     id = agg['id']
     if id == "":
@@ -61,7 +87,8 @@ def create_aggregation_collection(agg, feature, parent_suffix='cci'):
     aggregation['description'] = agg['description_url']
     aggregation['title'] = id
 
-    aggregation['extent'] = feature['extent']
+    aggregation['extent'] = extent
+    aggregation['keywords'] = feature['keywords']
 
     feature['links'].append({
         "rel" : "child",
@@ -84,11 +111,18 @@ def create_aggregation_collection(agg, feature, parent_suffix='cci'):
 
         print(f' > > {id}: {response}')
     else:
+        if id == 'esacci.BIOMASS.yr.L4.AGB.multi-sensor.multi-platform.MERGED.6-0.100m.openeo':
+            with open('example_drs.json','w') as f:
+                f.write(json.dumps(aggregation))
         print(f' > > {id}: Skipped')
 
     return feature
 
 def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
+    """
+    ODP Subcollection/Feature - CEDA Moles Identfier
+    """
+
 
     if parent_suffix == 'cci':
         parent_suffix = ''
@@ -104,6 +138,8 @@ def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
         feature['id'] = id
         feature['description'] = fc['abstract'] + '\n\n' + fc['url']
         feature['title'] = fc['feature_title']
+
+        feature['keywords'] = tmpl['keywords']
 
         c3s_coverage = [
             f"{fc['start']}T00:00:00Z",
@@ -160,6 +196,9 @@ def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
         })
 
         if project == 'Biomass':
+            if 'openeo' in parent_suffix:
+                # Determine summaries to be applied to each record.
+                pass
             for agg in fc['aggregations']:
                 feature = create_aggregation_collection(agg, feature, parent_suffix=parent_suffix)
 
@@ -189,6 +228,9 @@ def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
     return tmpl
 
 def create_project_collection(project, parent, parent_suffix='cci'):
+    """
+    ODP/CEDA Project
+    """
 
     if parent_suffix == 'cci':
         parent_suffix = ''
@@ -303,7 +345,7 @@ def create_project_collection(project, parent, parent_suffix='cci'):
 
 if __name__ == '__main__':
 
-    dryrun = False
+    dryrun = True
 
     with open('config/cci_ecv_config.json') as f:
         content = json.load(f)
@@ -322,8 +364,8 @@ if __name__ == '__main__':
     for project in (keys + ['reccap2','sea-level-budget-closure']):
         
         print(f'Creating {project}')
-        #cci    = create_project_collection(project, cci)
         if project == 'Biomass':
+            cci    = create_project_collection(project, cci)
             openeo = create_project_collection(project, openeo, parent_suffix='.openeo')
 
 

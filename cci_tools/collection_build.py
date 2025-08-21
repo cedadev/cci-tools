@@ -29,20 +29,6 @@ auth = OAuth2ClientCredentials(
     client_secret=creds["secret"]
 )
 
-with open('config/cci_ecv_config.json') as f:
-    content = json.load(f)
-
-with open('config/projects.json') as f:
-    projects = json.load(f)
-
-with open('stac_collections/cci.json') as f:
-    cci = json.load(f)
-
-with open('stac_collections/openeo.json') as f:
-    openeo = json.load(f)
-
-with open('stac_collections/template.json') as f:
-    template = json.load(f)
 
 def create_aggregation_collection(agg, feature, parent_suffix='cci'):
 
@@ -175,9 +161,10 @@ def create_subcollections(project, tmpl, pid, parent_suffix='cci'):
                 json=feature,
                 auth=auth,
             )
+            print(response)
             if response.status_code not in [200,201]:
                 response = client.post(
-                    f"{STAC_API}/collections/",
+                    f"{STAC_API}/collections",
                     json=feature,
                     auth=auth,
                 )
@@ -200,7 +187,9 @@ def create_project_collection(project, parent, parent_suffix='cci'):
     else:
         id = project.replace('-','_')
 
-    tmpl['id'] = id + parent_suffix
+    id += parent_suffix
+
+    tmpl['id'] = id
     c3s_coverage = None
     if project in projects:
         tmpl['description'] = projects[project]['abstract']
@@ -226,7 +215,7 @@ def create_project_collection(project, parent, parent_suffix='cci'):
         'project': [project]
     }
 
-    if id == 'greenland_ice_sheet' or id == 'biomass':
+    if id == 'greenland_ice_sheet' or id == 'biomass' or id == 'biomass.openeo':
         tmpl = create_subcollections(project, tmpl, id, parent_suffix=parent_suffix)
 
     tmpl['links'].append({
@@ -291,7 +280,7 @@ def create_project_collection(project, parent, parent_suffix='cci'):
         )
         if response.status_code not in [200,201]:
             response = client.post(
-                f"{STAC_API}/collections/",
+                f"{STAC_API}/collections",
                 json=tmpl,
                 auth=auth,
             )
@@ -316,16 +305,25 @@ if __name__ == '__main__':
         
     template = json.loads(temp)
 
+    with open('stac_collections/openeo.json') as f:
+        tempo = ''.join(f.readlines()).replace('STAC_API',STAC_API)
+
+    openeo = json.loads(tempo)
+
+    with open('stac_collections/cci.json') as f:
+        ccio = ''.join(f.readlines()).replace('STAC_API',STAC_API)
+
+    cci = json.loads(ccio)
+
     top_ignore = ["facet_config","ecv_labels","ecv_title_ids","full_search_results"]
     keys = [c for c in content.keys() if c not in top_ignore]
 
     for project in (keys + ['reccap2','sea-level-budget-closure']):
         
         print(f'Creating {project}')
-        #cci    = create_project_collection(project, cci)
-        if project == 'Biomass':
-            openeo = create_project_collection(project, openeo, parent_suffix='.openeo')
-
+        cci    = create_project_collection(project, cci)
+        #if project == 'Biomass':
+        #    openeo = create_project_collection(project, openeo, parent_suffix='.openeo')
 
     if not dryrun:
         response = client.put(
@@ -342,4 +340,22 @@ if __name__ == '__main__':
         print(f'CCI: {response}')
     else:
         print('CCI: Skipped')
+        with open('stac_collections/gen/cci.json','w') as f:
+            f.write(json.dumps(cci))
+
+    if not dryrun:
+        response = client.put(
+            f"{STAC_API}/collections/cci_openeo",
+            json=openeo,
+            auth=auth,
+        )
+        if response.status_code not in [200,201]:
+            response = client.post(
+                f"{STAC_API}/collections",
+                json=openeo,
+                auth=auth,
+            )
+        print(f'OpenEO: {response}')
+    else:
+        print('OpenEO: Skipped')
     

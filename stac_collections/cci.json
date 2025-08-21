@@ -4,16 +4,6 @@
     "stac_version": "1.1.0",
     "links": [
         {
-            "rel": "aggregate",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci/aggregate"
-        },
-        {
-            "rel": "aggregations",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci/aggregations"
-        },
-        {
             "rel": "parent",
             "type": "application/json",
             "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
@@ -29,8 +19,8 @@
             "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci"
         },
         {
-            "href": "https://api.stac.ceda.ac.uk/collections/cci/queryables",
-            "rel": "queryables",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/cci/items",
+            "rel": "items",
             "type": "application/json"
         }
     ],

@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+__author__    = "Diane Knappett"
+__contact__   = "diane.knappett@stfc.ac.uk"
+__copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
+
 """
 This script performs an elasticsearch query for the directory defined in variable cci_dir 
 and then converts the opensearch record output to STAC format.
@@ -120,7 +124,7 @@ def extract_opensearch(es_all_dict:dict):
     
     return stac_info, properties
 
-def read_geotiff(geotiff_file:str):
+def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None):
     # Read in releavent info from GeoTIFF file itself
     
     # Values to feed into proj:transform, proj:epsg, and proj:shape
@@ -128,19 +132,19 @@ def read_geotiff(geotiff_file:str):
 
         metadata = src.tags()
         try:
-            start_dt=metadata['time_coverage_start']
+            start_dt=metadata.get('time_coverage_start', start_time)
             dt_object=datetime.strptime(start_dt,"%Y%m%dT%H%M%SZ")
             start_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
-            end_dt=metadata['time_coverage_end']
+            end_dt=metadata.get('time_coverage_end', end_time)
             dt_object=datetime.strptime(end_dt,"%Y%m%dT%H%M%SZ")
             end_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception as e:
             print(f"An error occured '{e}'")
             return None, None
 
-        version = metadata['product_version']
-        platforms = metadata['platform']
-        drs = "TEMP"
+        version   = metadata.get('product_version','Unknown')
+        platforms = metadata.get('platform','Unknown')
+        drs = None
 
         bbox_w = float(metadata['geospatial_lon_min']) # west
         bbox_n = float(metadata['geospatial_lat_max']) # north
@@ -174,9 +178,22 @@ def read_geotiff(geotiff_file:str):
     
     return stac_info, properties
 
-def process_record(es_all_dict:dict, STAC_API:str)->tuple:
+def process_record(
+        es_all_dict:dict, 
+        STAC_API:str, 
+        suffix: str = '', 
+        DRS: str = '',
+        splitter: dict = None,
+        start_time: str = None,
+        end_time: str = None
+    )->tuple:
+
+    # Mapping to split files within the same final Item.
+    splitter = splitter or None
+
     # Extract filename, file id, and file extension
     fname, file_id, file_ext = extract_id(es_all_dict)
+    print(file_id)
 
     # Extract file path
     location = es_all_dict['info'].get('directory')
@@ -204,7 +221,7 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
         # === GeoTIFF ===
         # Information will be extracted from the OpenSearch record and the GeoTIFF file itself
 
-        stac_info, properties = read_geotiff(location+"/"+fname)
+        stac_info, properties = read_geotiff(location+"/"+fname, start_time=start_time, end_time=end_time)
 
         if not isinstance(stac_info, dict):
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
@@ -213,17 +230,34 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
     else:
         print("Error: File format not recognised!")
         return
+    
+    exts = [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json"
+    ]
+
+    if suffix == '':
+        eo_bands = stac_info['format']
+    else:
+        eo_bands = 'derived'
+        exts.append("https://stac-extensions.github.io/eo/v1.1.0/schema.json")
+        # Temporary to get banding properly
+
+    drs = stac_info['drs'] or DRS
+
+    # Split applied to file_id
+    for split, mapping in splitter.items():
+        if split in file_id:
+            file_id = file_id.replace(split, mapping[0])
+            eo_bands += mapping[1] # Asset label.
 
     # Create a dictionary of the required STAC output
     stac_dict = {
         "type": "Feature",
         "stac_version": "1.1.0",
-        "stac_extensions": [
-            "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-            "https://stac-extensions.github.io/classification/v1.0.0/schema.json"
-            ],
-        "id": file_id,
-        "collection": stac_info["drs"],
+        "stac_extensions": exts,
+        "id": file_id + suffix,
+        "collection": drs + suffix,
         "geometry": {
             "type": stac_info["geo_type"],
             "coordinates": [stac_info["coordinates"]]
@@ -244,17 +278,17 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
             {
             "rel": "self",
             "type": "application/geo+json",
-            "href": f"{STAC_API}/collections/{stac_info['drs']}/items/{file_id}"
+            "href": f"{STAC_API}/collections/{drs + suffix}/items/{file_id + suffix}"
             },
             {
             "rel": "parent",
             "type": "application/json",
-            "href": f"{STAC_API}/collections/{stac_info['drs']}" 
+            "href": f"{STAC_API}/collections/{drs}" + suffix
             },
             {
             "rel": "collection",
             "type": "application/json",
-            "href": f"{STAC_API}/collections/{stac_info['drs']}"
+            "href": f"{STAC_API}/collections/{drs}" + suffix
             },
             {
             "rel": "root",
@@ -268,9 +302,9 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
             }
         ],
         "assets": {
-            stac_info["format"]: {
-                "href": f"{location}/{fname}",
-                "role": [
+            eo_bands: {
+                "href": f"https://dap.ceda.ac.uk{location}/{fname}",
+                "roles": [
                     "data"
                 ]
             }
@@ -284,12 +318,22 @@ def process_record(es_all_dict:dict, STAC_API:str)->tuple:
 
     return stac_dict, file_ext
 
+def combine_records(recordA, recordB):
+    
+    for k, v in recordB['assets'].items():
+        recordA['assets'][k] = v
+    return recordA
+
 # Parse command line arguments using click
 @click.command()
-@click.argument('cci_dir', type=click.Path(exists=True))
+@click.argument('cci_dirs', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path(exists=True))
+@click.option('--output_drs', 'output_drs', required=False)
+@click.option('--exclusion',  'exclusion', required=False)
+@click.option('--start_time', 'start_time', required=False) # "%Y%m%dT%H%M%SZ"
+@click.option('--end_time',   'end_time', required=False)
 
-def main(cci_dir, output_dir):
+def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None):
     '''
     Reads in OpenSearch records for CCI NetCDF and geotiff data.
 
@@ -298,9 +342,10 @@ def main(cci_dir, output_dir):
     For GeoTIFF files, only partial information is available within the OpenSearch record, so additional metadata is extracted from the GeoTIFF file itself.
     '''
 
-    print(f"Input CCI directory: {cci_dir}")
-    print(f"Output STAC record directory: {output_dir}")
+    exclusion = exclusion or 'uf8awhjidaisdf8sd'
+
     STAC_API = 'https://api.stac.164.30.69.113.nip.io'
+    suffix = '.openeo'
 
     # Setup client and query elasticsearch
     with open('API_CREDENTIALS') as f:
@@ -308,52 +353,99 @@ def main(cci_dir, output_dir):
         API_KEY = api_creds["secret"]
 
     client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'],
-                           headers={'x-api-key':API_KEY}
-                           )
-
-    body=get_query(cci_dir)
-    response = client.search(index='opensearch-files', body=body)
+                        headers={'x-api-key':API_KEY}
+                        )
     
-    # Loop over OpenSearch records, converting each to STAC format
-    is_last = False
-    while len(response['hits']['hits']) == 10 or not is_last:
+    splitter = {
+        'AGB_SD-MERGED':["AGB-MERGED",'_SD']
+    }
 
-        if len(response['hits']['hits']) != 10:
-            is_last = True
+    drs = output_drs
 
-        for record in response['hits']['hits']:
-            # Process OpenSearch record
-            stac_dict, file_ext = process_record(record['_source'], STAC_API)
+    if os.path.isfile(cci_dirs):
+        with open(cci_dirs) as f:
+            cci_configurations = [r.strip().split(',') for r in f.readlines()]
+    else:
+        cci_configurations = [cci_dirs]
 
-            if isinstance(stac_dict, dict) == False:
-                print(f"Unable to create STAC record.")
-                continue
+    for cfg in cci_configurations:
 
-            # Create directory for each CCI ECV/Project
-            ecv_dir=stac_dict["properties"]["collections"][0]
-            cci_stac_dir=f"{output_dir}/{ecv_dir}/"
+        cci_dir = cfg[0]
+        if len(cfg) > 1:
+            drs = cfg[1]
+        if len(cfg) > 2:
+            with open(cfg[2]) as f:
+                splitter = json.load(f)
 
-            if os.path.isdir(cci_stac_dir)==False:
-                try:
-                    os.mkdir(cci_stac_dir)
-                    print(f"Created directory '{cci_stac_dir}' successfully")
-                except PermissionError:
-                    print(f"Permission denied: Unable to make '{cci_stac_dir}'")
-                except Exception as e:
-                    print(f"An error occured '{e}'")
-        
-            # Write 'pretty print' STAC json file
-            id=stac_dict["id"]
-            stac_file=f"{cci_stac_dir}stac_{id}-{file_ext[1:]}.json"
+        print(f"Input CCI directory: {cci_dir}")
+        print(f"Output STAC record directory: {output_dir}")
 
-            with open(stac_file, 'w', encoding='utf-8') as file:
-                json.dump(stac_dict, file, ensure_ascii=False, indent=2)
-        
-            print(f"Created STAC record: {stac_file}")
+        if drs == '':
+            drs = output_drs
 
-        searchAfter = response['hits']['hits'][-1]["sort"]
-        body['search_after'] = searchAfter
+        body=get_query(cci_dir)
         response = client.search(index='opensearch-files', body=body)
+        
+        # Loop over OpenSearch records, converting each to STAC format
+        is_last = False
+        while len(response['hits']['hits']) == 10 or not is_last:
+
+            if len(response['hits']['hits']) != 10:
+                is_last = True
+
+            for record in response['hits']['hits']:
+
+                if exclusion in record['_source']['info']['name']:
+                    print('Skipping due to exclusion')
+                    continue
+
+
+                # Process OpenSearch record
+                stac_dict, file_ext = process_record(
+                    record['_source'], 
+                    STAC_API, 
+                    suffix=suffix, 
+                    DRS=drs, 
+                    splitter=splitter,
+                    start_time=start_time,
+                    end_time=end_time)
+
+                if isinstance(stac_dict, dict) == False:
+                    print(f"Unable to create STAC record.")
+                    continue
+
+                # Create directory for each CCI ECV/Project
+                ecv_dir=stac_dict["collection"]
+                cci_stac_dir=f"{output_dir}/{ecv_dir}/"
+
+                if os.path.isdir(cci_stac_dir)==False:
+                    try:
+                        os.mkdir(cci_stac_dir)
+                        print(f"Created directory '{cci_stac_dir}' successfully")
+                    except PermissionError:
+                        print(f"Permission denied: Unable to make '{cci_stac_dir}'")
+                    except Exception as e:
+                        print(f"An error occured '{e}'")
+            
+                # Write 'pretty print' STAC json file
+                id=stac_dict["id"]
+                stac_file=f"{cci_stac_dir}stac_{id}-{file_ext[1:]}.json"
+
+                # Merge assets with existing stac record if present.
+
+                if splitter is not None:
+                    # Mapping applied so asset merging is allowed
+                    if os.path.isfile(stac_file):
+                        with open(stac_file) as f:
+                            stac_combine = json.load(f)
+                        stac_dict = combine_records(stac_dict, stac_combine)
+
+                with open(stac_file, 'w', encoding='utf-8') as file:
+                    json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+
+            searchAfter = response['hits']['hits'][-1]["sort"]
+            body['search_after'] = searchAfter
+            response = client.search(index='opensearch-files', body=body)
 
 if __name__ == "__main__":
     main()

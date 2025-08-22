@@ -6,16 +6,14 @@ authors = [
     {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.11"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     "argparse (>=1.4,<2.0)",
     "requests (>=2.32.4,<3.0.0)",
     "urllib3 (>=2.5,<3.0)",
     "httpx (>=0.28,<0.29)",
-    "openeo[localprocessing] (>=0.43.0,<0.44.0)",
     "xarray (>=2024,<2025)",
     "pystac-client (<=0.8.4)",
-    "openeo-processes-dask (==2025.7.1)",
     "rasterio (>=1.4.3,<2.0.0)",
     "rio-cogeo (>=5.4.2,<6.0.0)",
     "elasticsearch (>=9.1.0,<10.0.0)",
@@ -26,3 +24,19 @@ dependencies = [
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
+
+[project.scripts]
+# Delete collections
+delete_collections = "cci_tools.delete_collections:main"
+
+# Run STAC general commands with client
+stac_shell = "cci_tools.shell:main"
+
+# Update individual collections
+update_collection = "cci_tools.update_collection:main"
+
+# Create STAC records for cci
+create_items = "cci_tools.create_items.create_cci_stac_records:main"
+
+# Post cached STAC items to cci STAC API
+post_items = "cci_tools.create_items.post_cci_stac_records:main"

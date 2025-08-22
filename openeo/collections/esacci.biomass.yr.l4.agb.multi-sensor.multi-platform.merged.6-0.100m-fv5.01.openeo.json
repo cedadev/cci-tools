@@ -1,0 +1,94 @@
+{
+    "id": "esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged.6-0.100m-fv5.01.openeo",
+    "description": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=bf535053562141c6bb7ad831f5998d77",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged.6-0.100m-fv5.01.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged.6-0.100m-fv5.01.openeo"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged.6-0.100m-fv5.01.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2010-01-01T00:00:00Z",
+                    "2021-12-31T00:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "openeo",
+        "esacci",
+        "biomass",
+        "yr",
+        "L4",
+        "AGB",
+        "multi-sensor",
+        "multi-platform",
+        "MERGED",
+        "6-0",
+        "100m",
+        "fv5.01",
+        "bf535053562141c6bb7ad831f5998d77"
+    ],
+    "providers": [],
+    "summaries": {
+        "eo:bands": [
+            {
+                "name": "derived",
+                "common_name": "derived",
+                "description": "No description available"
+            },
+            {
+                "name": "derived_SD",
+                "common_name": "derived_SD",
+                "description": "None"
+            }
+        ]
+    }
+}

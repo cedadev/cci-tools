@@ -71,11 +71,16 @@ DEPTHS_EXPLAINED = [
 @click.command()
 @click.argument('collection')
 @click.argument('parent', required=False)
-@click.option('--items_only','items_only',is_flag=True)
-@click.option('--top_only','top_only',is_flag=True)
-@click.option('--lowest_only','lowest_only',is_flag=True)
-@click.option('-r','real_run',is_flag=True)
-@click.option('--delete_depth','delete_depth', type=int)
+@click.option('--items_only','items_only',is_flag=True,
+              help='Delete only items from a given collection')
+@click.option('--top_only','top_only',is_flag=True,
+              help='Delete the specified collection only')
+@click.option('--lowest_only','lowest_only',is_flag=True,
+              help='Delete the lowest level collections (with no children)')
+@click.option('-r','real_run',is_flag=True,
+              help='Actually delete content')
+@click.option('--delete_depth','delete_depth', type=int,
+              help='Delete collections at a certain depth in the nested collection set.')
 
 def main(collection: str, parent: str = None, 
          items_only = False,

@@ -328,10 +328,14 @@ def combine_records(recordA, recordB):
 @click.command()
 @click.argument('cci_dirs', type=click.Path(exists=True))
 @click.argument('output_dir', type=click.Path(exists=True))
-@click.option('--output_drs', 'output_drs', required=False)
-@click.option('--exclusion',  'exclusion', required=False)
-@click.option('--start_time', 'start_time', required=False) # "%Y%m%dT%H%M%SZ"
-@click.option('--end_time',   'end_time', required=False)
+@click.option('--output_drs', 'output_drs', required=False,
+              help='DRS to apply to all items for the CCI dirs specified')
+@click.option('--exclusion',  'exclusion', required=False,
+              help='Exclude opensearch records with this string present in their name')
+@click.option('--start_time', 'start_time', required=False,
+              help='Manually specify %Y%m%dT%H%M%SZ format start_time') # "%Y%m%dT%H%M%SZ"
+@click.option('--end_time',   'end_time', required=False,
+              help='Manually specify %Y%m%dT%H%M%SZ format end_time')
 
 def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None):
     '''

@@ -1,3 +1,7 @@
+__author__    = "Daniel Westwood"
+__contact__   = "daniel.westwood@stfc.ac.uk"
+__copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
+
 import json
 import os, sys
 from elasticsearch import Elasticsearch

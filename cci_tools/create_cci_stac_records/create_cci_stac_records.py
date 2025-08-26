@@ -370,7 +370,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
         with open(cci_dirs) as f:
             cci_configurations = [r.strip().split(',') for r in f.readlines()]
     else:
-        cci_configurations = [cci_dirs]
+        cci_configurations = [[cci_dirs]]
 
     for cfg in cci_configurations:
 

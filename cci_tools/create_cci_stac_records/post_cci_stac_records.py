@@ -40,10 +40,13 @@ def post_record(stac_record, summaries):
     with open(stac_record, 'r') as file:
         # Load STAC record
         stac_data=json.load(file)
+
+        # Ensure lower-case collections
+        stac_data['collection'] = stac_data['collection'].lower()
         
         # Extract 'drsId' for collection name and 'id' for item name
-        dataset_id='TEMP.openeo' #stac_data["properties"]["drsId"]
-        item_id=stac_data["id"]
+        dataset_id = stac_data["collection"]
+        item_id    = stac_data["id"]
 
         parent_href = f'{STAC_API}/collections/{stac_data["collection"]}'
         if parent_href not in summaries:
@@ -60,7 +63,7 @@ def post_record(stac_record, summaries):
         # Construct paths for STAC collection STAC item 
         stac_collection=STAC_API+"/collections/"+dataset_id+"/items"
         stac_item=stac_collection+"/"+item_id
-    
+
         # Post a new STAC record
         response = client.post(
             stac_collection,
@@ -76,24 +79,33 @@ def post_record(stac_record, summaries):
                 auth=auth
             )
         
-    print(item_id, response)
+    print('Item:',item_id, response)
     return summaries
 
 @click.command()
 @click.argument('post_directory', type=click.Path(exists=True))
-def main(post_directory):
+@click.option('--openeo', help='Flag for enabling openEO-specific posting rules')
+def main(post_directory, openeo: bool = False):
 
     summaries = {}
     for record in glob.glob(f'{post_directory}/stac*.json'):
         summaries = post_record(record, summaries)
 
+    if not openeo:
+        return
+
     for href, summary in summaries.items():
         parent = client.get(href).json()
 
-        summary_names = [i['name'] for i in parent['summaries']['eo:bands']]
+        summaries = parent.get('summaries',None)
+        if summaries is None:
+            summaries = {}
+            summary_names = []
+        else:
+            summary_names = [i['name'] for i in summaries.get('eo:bands',{}) if 'name' in i]
 
         repost_summaries = False
-        summaries_set = parent['summaries']['eo:bands']
+        summaries_set = summaries.get('eo:bands',[])
         for name, band in summary.items():
             if name not in summary_names:
                 summaries_set.append(band)
@@ -101,9 +113,12 @@ def main(post_directory):
 
             # Need to be able to update the summaries.
 
+        if parent['summaries'] is None and repost_summaries:
+            parent['summaries'] = {'eo:bands':[]}
+
         parent['summaries']['eo:bands'] = summaries_set
         if repost_summaries:
-            print(href.split('/')[-1], client.put(href, json=parent, auth=auth))
+            print('Parent:',href.split('/')[-1], client.put(href, json=parent, auth=auth))
 
 
 if __name__ == "__main__":

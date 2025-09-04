@@ -36,7 +36,7 @@ stac_shell = "cci_tools.shell:main"
 update_collection = "cci_tools.update_collection:main"
 
 # Create STAC records for cci
-create_items = "cci_tools.create_items.create_cci_stac_records:main"
+create_items = "cci_tools.create_cci_stac_records.create_cci_stac_records:main"
 
 # Post cached STAC items to cci STAC API
-post_items = "cci_tools.create_items.post_cci_stac_records:main"
+post_items = "cci_tools.create_cci_stac_records.post_cci_stac_records:main"

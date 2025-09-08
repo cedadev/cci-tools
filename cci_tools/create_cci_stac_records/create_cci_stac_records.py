@@ -10,7 +10,7 @@ and then converts the opensearch record output to STAC format.
 Currently run from the command line using:
 python create_cci_stac_record.py cci_dir
 
-e.g. python create_cci_stac_record.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf /gws/nopw/j04/esacci_portal/stac/stac_records
+e.g. python create_cci_stac_records.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf /gws/nopw/j04/esacci_portal/stac/stac_records
 """
 from elasticsearch import Elasticsearch
 from datetime import datetime
@@ -257,7 +257,7 @@ def process_record(
         "stac_version": "1.1.0",
         "stac_extensions": exts,
         "id": file_id + suffix,
-        "collection": drs + suffix,
+        "collection": (drs + suffix).lower(),
         "geometry": {
             "type": stac_info["geo_type"],
             "coordinates": [stac_info["coordinates"]]
@@ -272,6 +272,8 @@ def process_record(
             "aggregation": False,
             "platforms": stac_info["platforms"],
             "collections":[ecv, uuid, stac_info["drs"]],
+            "opensearch_url":f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
+            "esa_url":f"https://climate.esa.int/en/catalogue/{uuid}/",
             **properties
         },
         "links": [
@@ -349,7 +351,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
 
     STAC_API = 'https://api.stac.164.30.69.113.nip.io'
-    suffix = '.openeo'
+    #suffix = '.openeo'
 
     # Setup client and query elasticsearch
     with open('API_CREDENTIALS') as f:
@@ -408,7 +410,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                 stac_dict, file_ext = process_record(
                     record['_source'], 
                     STAC_API, 
-                    suffix=suffix, 
+                    #suffix=suffix, 
                     DRS=drs, 
                     splitter=splitter,
                     start_time=start_time,

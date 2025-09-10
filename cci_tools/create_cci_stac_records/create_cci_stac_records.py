@@ -465,6 +465,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
             searchAfter = response['hits']['hits'][-1]["sort"]
             body['search_after'] = searchAfter
             response = client.search(index='opensearch-files', body=body)
+
             if len(response["hits"]["hits"]) == 0:
                 is_last=True
         
@@ -474,12 +475,13 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
         print("")
 
         if failed_list:
-            # Write list of files that failed
-            with open(f"{output_dir}/failed_files.txt", "w") as file:
+            output_failed_files=f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
+
+            with open(output_failed_files, "w") as file:
                 for item in failed_list:
                     file.write(item + "\n")
             print(f"The list of files for which STAC records could not be created have been written to the following file:")
-            print(f"{output_dir}/failed_files.txt")
+            print(output_failed_files)
             print("")
 
 if __name__ == "__main__":

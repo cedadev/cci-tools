@@ -87,8 +87,12 @@ def extract_opensearch(es_all_dict:dict):
     bbox_s = coords[1][1] # south
     bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
 
-    geo_type = 'Polygon'
-    coordinates = [[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]
+    if bbox_w == bbox_e and bbox_n == bbox_s:
+        geo_type = 'Point'
+        coordinates = [bbox_w, bbox_s]
+    else:
+        geo_type = 'Polygon'
+        coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
 
     # Extract specific properties required
     sdatetime = str(es_all_dict['info']['temporal'].get('start_time'))
@@ -153,7 +157,9 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
         bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
 
         geo_type = 'Polygon'
-        coordinates = [[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]
+        if bbox_w == bbox_e and bbox_n == bbox_s:
+            geo_type = 'Point'
+        coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
         format = 'GeoTiff'
 
         transform = [src.transform[i] for i in range(6)]
@@ -243,7 +249,7 @@ def process_record(
         exts.append("https://stac-extensions.github.io/eo/v1.1.0/schema.json")
         # Temporary to get banding properly
 
-    drs = stac_info['drs'] or DRS
+    drs = stac_info.get('drs',None) or DRS or f"{uuid}-main"
 
     # Split applied to file_id
     for split, mapping in splitter.items():
@@ -260,7 +266,7 @@ def process_record(
         "collection": (drs + suffix).lower(),
         "geometry": {
             "type": stac_info["geo_type"],
-            "coordinates": [stac_info["coordinates"]]
+            "coordinates": stac_info["coordinates"]
         },
         "bbox": stac_info["bbox"],
         "properties": {
@@ -271,7 +277,7 @@ def process_record(
             "version": stac_info["version"],
             "aggregation": False,
             "platforms": stac_info["platforms"],
-            "collections":[ecv, uuid, stac_info["drs"]],
+            "collections":[ecv, uuid, drs],
             "opensearch_url":f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
             "esa_url":f"https://climate.esa.int/en/catalogue/{uuid}/",
             **properties
@@ -452,6 +458,8 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
             searchAfter = response['hits']['hits'][-1]["sort"]
             body['search_after'] = searchAfter
             response = client.search(index='opensearch-files', body=body)
+            if len(response["hits"]["hits"]) == 0:
+                is_last=True
 
 if __name__ == "__main__":
     main()

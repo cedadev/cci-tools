@@ -235,7 +235,7 @@ def process_record(
 
     else:
         print("Error: File format not recognised!")
-        return
+        return None, None
     
     exts = [
         "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
@@ -399,6 +399,9 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
         response = client.search(index='opensearch-files', body=body)
         
         # Loop over OpenSearch records, converting each to STAC format
+        failed_list=[]
+        count_success=0
+        count_fail=0
         is_last = False
         while len(response['hits']['hits']) == 10 or not is_last:
 
@@ -424,6 +427,8 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
 
                 if isinstance(stac_dict, dict) == False:
                     print(f"Unable to create STAC record.")
+                    failed_list.append(record["sort"][0]+record["sort"][1])
+                    count_fail+=1
                     continue
 
                 # Create directory for each CCI ECV/Project
@@ -454,12 +459,28 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
 
                 with open(stac_file, 'w', encoding='utf-8') as file:
                     json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+                
+                count_success += 1
 
             searchAfter = response['hits']['hits'][-1]["sort"]
             body['search_after'] = searchAfter
             response = client.search(index='opensearch-files', body=body)
             if len(response["hits"]["hits"]) == 0:
                 is_last=True
+        
+        print("")
+        print(f"No. of STAC records created successfully: {count_success}")
+        print(f"No. of STAC records that failed: {count_fail}")
+        print("")
+
+        if failed_list:
+            # Write list of files that failed
+            with open(f"{output_dir}/failed_files.txt", "w") as file:
+                for item in failed_list:
+                    file.write(item + "\n")
+            print(f"The list of files for which STAC records could not be created have been written to the following file:")
+            print(f"{output_dir}/failed_files.txt")
+            print("")
 
 if __name__ == "__main__":
     main()

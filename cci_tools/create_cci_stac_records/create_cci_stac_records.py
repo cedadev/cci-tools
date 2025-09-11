@@ -430,7 +430,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
 
                 if not isinstance(stac_dict, dict):
                     print(f"Unable to create STAC record.")
-                    failed_list.append(record["sort"][0]+record["sort"][1])
+                    failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}")
                     count_fail+=1
                     continue
 

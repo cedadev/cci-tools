@@ -414,18 +414,21 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                     print('Skipping due to exclusion')
                     continue
 
+                try:
+                    # Process OpenSearch record
+                    stac_dict, file_ext = process_record(
+                        record['_source'], 
+                        STAC_API, 
+                        #suffix=suffix, 
+                        DRS=drs, 
+                        splitter=splitter,
+                        start_time=start_time,
+                        end_time=end_time)
+                except Exception as er:
+                    stac_dict, file_ext = None, None
+                    print(er, end=': ')
 
-                # Process OpenSearch record
-                stac_dict, file_ext = process_record(
-                    record['_source'], 
-                    STAC_API, 
-                    #suffix=suffix, 
-                    DRS=drs, 
-                    splitter=splitter,
-                    start_time=start_time,
-                    end_time=end_time)
-
-                if isinstance(stac_dict, dict) == False:
+                if not isinstance(stac_dict, dict):
                     print(f"Unable to create STAC record.")
                     failed_list.append(record["sort"][0]+record["sort"][1])
                     count_fail+=1

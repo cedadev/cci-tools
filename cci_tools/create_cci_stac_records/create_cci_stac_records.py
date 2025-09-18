@@ -79,26 +79,41 @@ def get_licence(ecv:str):
     return url
 
 def extract_opensearch(es_all_dict:dict):
+    dummy=False
+    
     # Extract geospatial bounding box (W, N, E, S)
-    coords = es_all_dict['info']['spatial']['coordinates'].get('coordinates')
-    bbox_w = coords[0][0] # west
-    bbox_n = coords[0][1] # north
-    bbox_e = coords[1][0] # east
-    bbox_s = coords[1][1] # south
-    bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
+    try:
+        coords = es_all_dict['info']['spatial']['coordinates'].get('coordinates')
+        bbox_w = coords[0][0] # west
+        bbox_n = coords[0][1] # north
+        bbox_e = coords[1][0] # east
+        bbox_s = coords[1][1] # south
+        bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
 
-    if bbox_w == bbox_e and bbox_n == bbox_s:
-        geo_type = 'Point'
-        coordinates = [bbox_w, bbox_s]
-    else:
+        if bbox_w == bbox_e and bbox_n == bbox_s:
+            geo_type = 'Point'
+            coordinates = [bbox_w, bbox_s]
+        else:
+            geo_type = 'Polygon'
+            coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
+    except:
+        dummy=True
+        bbox = [-180, -90, 180, 90]
         geo_type = 'Polygon'
-        coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
+        coordinates = [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
+
 
     # Extract specific properties required
-    sdatetime = str(es_all_dict['info']['temporal'].get('start_time'))
-    start_datetime = sdatetime.partition('+')[0]+'Z'
-    edatetime = str(es_all_dict['info']['temporal'].get('end_time'))
-    end_datetime = edatetime.partition('+')[0]+'Z'
+    try:
+        sdatetime = str(es_all_dict['info']['temporal'].get('start_time'))
+        start_datetime = sdatetime.partition('+')[0]+'Z'
+        edatetime = str(es_all_dict['info']['temporal'].get('end_time'))
+        end_datetime = edatetime.partition('+')[0]+'Z'
+    except:
+        dummy=True
+        start_datetime=None
+        end_datetime=None
+
     version = es_all_dict['projects']['opensearch'].get('productVersion')
     platforms = es_all_dict['projects']['opensearch'].get('platform')
     drs = es_all_dict['projects']['opensearch'].get('drsId')
@@ -111,7 +126,10 @@ def extract_opensearch(es_all_dict:dict):
         properties[property] = value
         
     # Extract format
-    format = es_all_dict['info'].get('format')
+    format = es_all_dict.get('info',{}).get('format')
+
+    if dummy:
+        properties['dummy']=True
     
     stac_info = {
         "start_datetime":start_datetime, 
@@ -213,11 +231,15 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
+    dummy=False
+
     if file_ext=='.nc':
         # === NetCDF ===
         # All information can be extracted from OpenSearch record
 
         stac_info, properties = extract_opensearch(es_all_dict)
+        if stac_info['properties'].get('dummy'):
+            failed_list.append( f'{location}/{fname},dummy' )
 
         if not isinstance(stac_info, dict):
             print("Error: OpenSearch record does not contain the required information to create a STAC record.")
@@ -353,7 +375,11 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
 
     For GeoTIFF files, only partial information is available within the OpenSearch record, so additional metadata is extracted from the GeoTIFF file itself.
     '''
+    create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None)
 
+failed_list=[]
+
+def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None):
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
 
     STAC_API = 'https://api.stac.164.30.69.113.nip.io'
@@ -399,7 +425,6 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
         response = client.search(index='opensearch-files', body=body)
         
         # Loop over OpenSearch records, converting each to STAC format
-        failed_list=[]
         count_success=0
         count_fail=0
         is_last = False
@@ -426,7 +451,10 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                         end_time=end_time)
                 except Exception as er:
                     stac_dict, file_ext = None, None
-                    print(er, end=': ')
+                    print(f"{er} Unable to create STAC record.")
+                    failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}, {er}")
+                    count_fail+=1
+                    continue
 
                 if not isinstance(stac_dict, dict):
                     print(f"Unable to create STAC record.")
@@ -438,7 +466,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                 ecv_dir=stac_dict["collection"]
                 cci_stac_dir=f"{output_dir}/{ecv_dir}/"
 
-                if os.path.isdir(cci_stac_dir)==False:
+                if not os.path.isdir(cci_stac_dir):
                     try:
                         os.mkdir(cci_stac_dir)
                         print(f"Created directory '{cci_stac_dir}' successfully")

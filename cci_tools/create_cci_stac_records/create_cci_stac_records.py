@@ -343,7 +343,7 @@ def process_record(
 
     # Remove platform until STAC standards have been updated to allow lists of platforms. 
     # Until then, the platform list is entered as 'platforms' instead.
-    if file_ext=='.nc':
+    if 'platform' in stac_dict['properties']:
         stac_dict['properties'].pop('platform')
 
     return stac_dict, file_ext

@@ -100,7 +100,7 @@ def extract_opensearch(es_all_dict:dict):
         dummy=True
         bbox = [-180, -90, 180, 90]
         geo_type = 'Polygon'
-        coordinates = [[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]
+        coordinates = [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
 
 
     # Extract specific properties required
@@ -111,8 +111,8 @@ def extract_opensearch(es_all_dict:dict):
         end_datetime = edatetime.partition('+')[0]+'Z'
     except:
         dummy=True
-        start_datetime=None
-        end_datetime=None
+        start_datetime="0000-00-00T00:00:00Z"
+        end_datetime="0000-00-00T00:00:00Z"
 
     version = es_all_dict['projects']['opensearch'].get('productVersion')
     platforms = es_all_dict['projects']['opensearch'].get('platform')

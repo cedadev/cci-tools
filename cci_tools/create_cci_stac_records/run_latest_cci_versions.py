@@ -55,6 +55,11 @@ def find_latest_versions(root_path):
 @click.argument('root_directory', type=click.Path(exists=True))
 
 def main(root_directory):
+    if root_directory.isnumeric():
+        path_file='/home/users/dknappett/tools/cci-tools/cci_project_paths.txt'
+        with open(path_file) as f:
+            root_directory=[r.strip() for r in f.readlines()][int(root_directory)]
+
     # Example usage
     #root_directory = '/neodc/esacci/aerosol/data'
     latest_dirs = find_latest_versions(root_directory)
@@ -66,7 +71,7 @@ def main(root_directory):
     dir_split=root_directory.split('/')
     project=dir_split[3]
 
-    output_dir=f'/gws/nopw/j04/esacci_portal/stac/stac_records/{project}'
+    output_dir=f'/gws/nopw/j04/esacci_portal/stac/stac_records/lotus_jobs/{project}'
     if not os.path.exists(output_dir):
         try:
             os.mkdir(output_dir)

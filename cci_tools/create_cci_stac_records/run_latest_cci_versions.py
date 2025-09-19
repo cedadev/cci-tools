@@ -52,7 +52,7 @@ def find_latest_versions(root_path):
 
 # Parse command line arguments using click
 @click.command()
-@click.argument('root_directory', type=click.Path(exists=True))
+@click.argument('root_directory')
 
 def main(root_directory):
     if root_directory.isnumeric():

@@ -246,6 +246,8 @@ def process_record(
             return None, None
 
     elif file_ext=='.tif':
+        print(f"GeoTIFF: Not processing: {location}/{fname}")
+        return None, None
         # === GeoTIFF ===
         # Information will be extracted from the OpenSearch record and the GeoTIFF file itself
 
@@ -256,7 +258,7 @@ def process_record(
             return None, None
 
     else:
-        print("Error: File format not recognised!")
+        print(f"Error: File format {file_ext} not recognised!")
         return None, None
     
     exts = [

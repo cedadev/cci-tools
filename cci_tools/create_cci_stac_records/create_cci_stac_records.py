@@ -21,6 +21,8 @@ import os
 import click
 import pdb
 import rasterio
+import re
+from dateutil.relativedelta import relativedelta
 
 def get_query(directory):
     query = {
@@ -77,6 +79,55 @@ def get_licence(ecv:str):
     url = f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{license}"
 
     return url
+
+def end_of_month(dt):
+    import calendar
+    last_day = calendar.monthrange(dt.year, dt.month)[1]
+    return dt.replace(day=last_day)
+
+def extract_times_from_file(geotiff_file, interval):
+
+    filename = geotiff_file.split('/')[-1]
+
+    yyyymmdd   = re.search("([0-9]{2}[0-9]{2}[0-9]{4})",filename)
+    yyyy       = re.search("(?<=[^a-zA-Z0-9])([0-9]{4})(?=[^a-zA-Z0-9])",filename)
+    yyyy_yyyy  = re.search("([0-9]{4})-([0-9]{4})",filename)
+    resolution = re.search("(?<=[^a-zA-Z0-9])(P[0-9]{1,2}Y)(?=[^a-zA-Z0-9])", filename)
+    y1 = None
+
+    resolutions = {'Y':'years','M':'months','D':'days'}
+
+    if yyyymmdd is not None:
+        dt_object = datetime.strptime(yyyymmdd.group(),"%Y%m%d")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+    elif yyyy_yyyy is not None:
+        y0, y1 = yyyy_yyyy.group().split('-')
+        dt_object = datetime.strptime(y0,"%Y")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+    elif yyyy is not None:
+        dt_object = datetime.strptime(yyyy.group(),"%Y")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+    else:
+        return None,None
+    
+    if interval == 'month':
+        end_datetime = end_of_month(dt_object).strftime("%Y-%m-%dT%H%M%SZ")
+    elif y1 is not None:
+        fdt_object = datetime.strptime(y1,"%Y")
+        end_datetime = (fdt_object + relativedelta(years=1) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H%M%SZ")
+    elif resolution is not None:
+        # P1Y example
+        r = resolution.group()
+        end_datetime = (dt_object + relativedelta(
+            **{resolutions[r[-1]]:int(r[1:-1])}
+        ) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H%M%SZ")
+    else:
+        # Day
+        end_datetime = dt_object.strftime("%Y-%m-%d") + "T23:59:59Z"
+
+    print(filename, start_datetime, end_datetime)
+    
+    return start_datetime, end_datetime
 
 def extract_opensearch(es_all_dict:dict):
     dummy=False
@@ -149,6 +200,9 @@ def extract_opensearch(es_all_dict:dict):
 def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None):
     # Read in releavent info from GeoTIFF file itself
     
+    # Initialise flag that is set if the required info cannot be extracted and a dummy record has to be created
+    dummy=False
+
     # Values to feed into proj:transform, proj:epsg, and proj:shape
     with rasterio.open(geotiff_file) as src:
 
@@ -161,29 +215,49 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
             dt_object=datetime.strptime(end_dt,"%Y%m%dT%H%M%SZ")
             end_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception as e:
-            print(f"An error occured '{e}'")
-            return None, None
+            start_datetime, end_datetime = extract_times_from_file(geotiff_file, interval=None)
+            if start_datetime is None:
+                dummy=True
+                start_datetime="0000-00-00T00:00:00Z"
+                end_datetime="0000-00-00T00:00:00Z"
 
         version   = metadata.get('product_version','Unknown')
         platforms = metadata.get('platform','Unknown')
         drs = None
 
-        bbox_w = float(metadata['geospatial_lon_min']) # west
-        bbox_n = float(metadata['geospatial_lat_max']) # north
-        bbox_e = float(metadata['geospatial_lon_max']) # east
-        bbox_s = float(metadata['geospatial_lat_min']) # south
-        bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
+        try:
+            bbox_w = float(metadata['geospatial_lon_min']) # west
+            bbox_n = float(metadata['geospatial_lat_max']) # north
+            bbox_e = float(metadata['geospatial_lon_max']) # east
+            bbox_s = float(metadata['geospatial_lat_min']) # south
+            bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
 
-        geo_type = 'Polygon'
-        if bbox_w == bbox_e and bbox_n == bbox_s:
-            geo_type = 'Point'
-        coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
+            geo_type = 'Polygon'
+            if bbox_w == bbox_e and bbox_n == bbox_s:
+                geo_type = 'Point'
+            coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
+        except:
+            dummy=True
+            bbox = [-180, -90, 180, 90]
+            geo_type = 'Polygon'
+            coordinates = [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
+
         format = 'GeoTiff'
+        
+        try:
+            transform = [src.transform[i] for i in range(6)]
+            epsg = src.crs.to_epsg()
+            shape = [src.height, src.width]
+        except:
+            dummy=True
+            transform = None
+            epsg = None
+            shape = None
 
-        transform = [src.transform[i] for i in range(6)]
-        epsg = src.crs.to_epsg()
-        shape = [src.height, src.width]
         properties={"proj:transform":transform, "proj:epsg":epsg, "proj:shape":shape}
+
+        if dummy:
+            properties['dummy']=True
 
         stac_info = {
             "start_datetime":start_datetime, 
@@ -246,8 +320,8 @@ def process_record(
             return None, None
 
     elif file_ext=='.tif':
-        print(f"GeoTIFF: Not processing: {location}/{fname}")
-        return None, None
+        #print(f"GeoTIFF: Not processing: {location}/{fname}")
+        #return None, None
         # === GeoTIFF ===
         # Information will be extracted from the OpenSearch record and the GeoTIFF file itself
 

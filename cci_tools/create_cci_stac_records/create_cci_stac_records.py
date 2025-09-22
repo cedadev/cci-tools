@@ -99,28 +99,28 @@ def extract_times_from_file(geotiff_file, interval):
 
     if yyyymmdd is not None:
         dt_object = datetime.strptime(yyyymmdd.group(),"%Y%m%d")
-        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
     elif yyyy_yyyy is not None:
         y0, y1 = yyyy_yyyy.group().split('-')
         dt_object = datetime.strptime(y0,"%Y")
-        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
     elif yyyy is not None:
         dt_object = datetime.strptime(yyyy.group(),"%Y")
-        start_datetime = dt_object.strftime("%Y-%m-%dT%H%M%SZ")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
     else:
         return None,None
     
     if interval == 'month':
-        end_datetime = end_of_month(dt_object).strftime("%Y-%m-%dT%H%M%SZ")
+        end_datetime = end_of_month(dt_object).strftime("%Y-%m-%dT%H:%M:%SZ")
     elif y1 is not None:
         fdt_object = datetime.strptime(y1,"%Y")
-        end_datetime = (fdt_object + relativedelta(years=1) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H%M%SZ")
+        end_datetime = (fdt_object + relativedelta(years=1) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     elif resolution is not None:
         # P1Y example
         r = resolution.group()
         end_datetime = (dt_object + relativedelta(
             **{resolutions[r[-1]]:int(r[1:-1])}
-        ) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H%M%SZ")
+        ) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
     else:
         # Day
         end_datetime = dt_object.strftime("%Y-%m-%d") + "T23:59:59Z"
@@ -130,7 +130,7 @@ def extract_times_from_file(geotiff_file, interval):
     return start_datetime, end_datetime
 
 def extract_opensearch(es_all_dict:dict):
-    dummy=False
+    incomplete=False
     
     # Extract geospatial bounding box (W, N, E, S)
     try:
@@ -148,7 +148,7 @@ def extract_opensearch(es_all_dict:dict):
             geo_type = 'Polygon'
             coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
     except:
-        dummy=True
+        incomplete=True
         bbox = [-180, -90, 180, 90]
         geo_type = 'Polygon'
         coordinates = [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
@@ -161,26 +161,38 @@ def extract_opensearch(es_all_dict:dict):
         edatetime = str(es_all_dict['info']['temporal'].get('end_time'))
         end_datetime = edatetime.partition('+')[0]+'Z'
     except:
-        dummy=True
+        incomplete=True
         start_datetime="0000-00-00T00:00:00Z"
         end_datetime="0000-00-00T00:00:00Z"
 
-    version = es_all_dict['projects']['opensearch'].get('productVersion')
-    platforms = es_all_dict['projects']['opensearch'].get('platform')
-    drs = es_all_dict['projects']['opensearch'].get('drsId')
+    try:
+        version = es_all_dict['projects']['opensearch'].get('productVersion')
+        platforms = es_all_dict['projects']['opensearch'].get('platform')
+        drs = es_all_dict['projects']['opensearch'].get('drsId')
+    except:
+        incomplete=True
+        version = 'Unknown'
+        platforms = 'Unknown'
+        drs = None
 
     # Extract all other properties
     properties = dict()
-    for property,value in es_all_dict['projects']['opensearch'].items():
-        if isinstance(value, list) and len(value) == 1:
-            value = value[0]
-        properties[property] = value
+    try:
+        for property,value in es_all_dict['projects']['opensearch'].items():
+            if isinstance(value, list) and len(value) == 1:
+                value = value[0]
+            properties[property] = value
+    except:
+        print(f"Record has no key: properties")
         
     # Extract format
-    format = es_all_dict.get('info',{}).get('format')
+    try:
+        format = es_all_dict.get('info',{}).get('format')
+    except:
+        format = None
 
-    if dummy:
-        properties['dummy']=True
+    if incomplete:
+        properties['incomplete']=True
     
     stac_info = {
         "start_datetime":start_datetime, 
@@ -200,8 +212,8 @@ def extract_opensearch(es_all_dict:dict):
 def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None):
     # Read in releavent info from GeoTIFF file itself
     
-    # Initialise flag that is set if the required info cannot be extracted and a dummy record has to be created
-    dummy=False
+    # Initialise flag that is set if the required info cannot be extracted and a incomplete record has to be created
+    incomplete=False
 
     # Values to feed into proj:transform, proj:epsg, and proj:shape
     with rasterio.open(geotiff_file) as src:
@@ -217,7 +229,7 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
         except Exception as e:
             start_datetime, end_datetime = extract_times_from_file(geotiff_file, interval=None)
             if start_datetime is None:
-                dummy=True
+                incomplete=True
                 start_datetime="0000-00-00T00:00:00Z"
                 end_datetime="0000-00-00T00:00:00Z"
 
@@ -237,27 +249,27 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
                 geo_type = 'Point'
             coordinates = [[[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]]
         except:
-            dummy=True
+            incomplete=True
             bbox = [-180, -90, 180, 90]
             geo_type = 'Polygon'
             coordinates = [[[-180, -90], [180, -90], [180, 90], [-180, 90], [-180, -90]]]
 
-        format = 'GeoTiff'
+        format = 'GeoTIFF'
         
         try:
             transform = [src.transform[i] for i in range(6)]
             epsg = src.crs.to_epsg()
             shape = [src.height, src.width]
         except:
-            dummy=True
+            incomplete=True
             transform = None
             epsg = None
             shape = None
 
         properties={"proj:transform":transform, "proj:epsg":epsg, "proj:shape":shape}
 
-        if dummy:
-            properties['dummy']=True
+        if incomplete:
+            properties['incomplete']=True
 
         stac_info = {
             "start_datetime":start_datetime, 
@@ -268,10 +280,8 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
             "bbox": bbox, 
             "geo_type": geo_type, 
             "coordinates": coordinates,
-            "format": format, 
-            "transform":transform, 
-            "epsg": epsg, 
-            "shape":shape
+            "properties":properties,
+            "format": format
             }
     
     return stac_info, properties
@@ -305,27 +315,31 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
-    dummy=False
-
-    if file_ext=='.nc':
+    if (file_ext=='.cpg' or file_ext=='.csv' or file_ext=='.dat' or file_ext=='.dbf' or file_ext=='.dsr' or file_ext=='.geojson' or 
+        file_ext=='.gz' or file_ext =='.jpg' or file_ext=='.kml' or file_ext=='.lyr' or file_ext=='.nc' or file_ext =='.png' or 
+        file_ext=='.prj' or file_ext=='.qpf' or file_ext=='.qml' or file_ext=='.qpj' or file_ext=='.sbn' or file_ext=='.sbx' or 
+        file_ext=='.shp' or file_ext=='.shx' or file_ext=='.tar' or file_ext=='.xml' or file_ext=='.zip'):
         # === NetCDF ===
         # All information can be extracted from OpenSearch record
 
         stac_info, properties = extract_opensearch(es_all_dict)
-        if stac_info['properties'].get('dummy'):
-            failed_list.append( f'{location}/{fname},dummy' )
+        if stac_info['properties'].get('incomplete'):
+            failed_list.append( f'{location}/{fname},incomplete')
+        
+        if stac_info['format'] == None:
+            stac_info['format'] = (file_ext[1:]).upper()
 
         if not isinstance(stac_info, dict):
             print("Error: OpenSearch record does not contain the required information to create a STAC record.")
             return None, None
 
-    elif file_ext=='.tif':
-        #print(f"GeoTIFF: Not processing: {location}/{fname}")
-        #return None, None
+    elif file_ext=='.tif' or file_ext=='.TIF':
         # === GeoTIFF ===
         # Information will be extracted from the OpenSearch record and the GeoTIFF file itself
 
         stac_info, properties = read_geotiff(location+"/"+fname, start_time=start_time, end_time=end_time)
+        if stac_info['properties'].get('incomplete'):
+            failed_list.append( f'{location}/{fname},incomplete')
 
         if not isinstance(stac_info, dict):
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
@@ -360,7 +374,7 @@ def process_record(
         "type": "Feature",
         "stac_version": "1.1.0",
         "stac_extensions": exts,
-        "id": file_id + suffix,
+        "id": file_id + suffix + f"-{stac_info['format']}",
         "collection": (drs + suffix).lower(),
         "geometry": {
             "type": stac_info["geo_type"],
@@ -373,6 +387,7 @@ def process_record(
             "end_datetime": stac_info["end_datetime"],
             "license": "other",
             "version": stac_info["version"],
+            "file_type": stac_info["format"],
             "aggregation": False,
             "platforms": stac_info["platforms"],
             "collections":[ecv, uuid, drs],
@@ -384,7 +399,7 @@ def process_record(
             {
             "rel": "self",
             "type": "application/geo+json",
-            "href": f"{STAC_API}/collections/{drs + suffix}/items/{file_id + suffix}"
+            "href": f"{STAC_API}/collections/{drs + suffix}/items/{file_id + suffix}-{stac_info['format']}"
             },
             {
             "rel": "parent",
@@ -553,7 +568,7 @@ def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=Non
             
                 # Write 'pretty print' STAC json file
                 id=stac_dict["id"]
-                stac_file=f"{cci_stac_dir}stac_{id}-{file_ext[1:]}.json"
+                stac_file=f"{cci_stac_dir}stac_{id}.json"
 
                 # Merge assets with existing stac record if present.
 
@@ -587,7 +602,7 @@ def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=Non
             with open(output_failed_files, "w") as file:
                 for item in failed_list:
                     file.write(item + "\n")
-            print(f"The list of files for which STAC records could not be created have been written to the following file:")
+            print(f"The list of files for which STAC records could not be created, or that were created but are incomplete, have been written to the following file:")
             print(output_failed_files)
             print("")
 

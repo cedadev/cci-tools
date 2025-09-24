@@ -36,7 +36,7 @@ auth = OAuth2ClientCredentials(
 )
 
 def post_record(stac_record, summaries):
-        
+
     with open(stac_record, 'r') as file:
         # Load STAC record
         stac_data=json.load(file)
@@ -80,12 +80,18 @@ def post_record(stac_record, summaries):
             )
         
     print('Item:',item_id, response)
+    #print('Item:',item_id, response.content)
     return summaries
 
 @click.command()
-@click.argument('post_directory', type=click.Path(exists=True))
+@click.argument('post_directory')
 @click.option('--openeo', help='Flag for enabling openEO-specific posting rules')
 def main(post_directory, openeo: bool = False):
+
+    if post_directory.isnumeric():
+        path_file='~/tools/cci-tools/lotus_scripts/stac_record_paths.txt'
+        with open(path_file) as f:
+            post_directory=[r.strip() for r in f.readlines()][int(post_directory)]
 
     summaries = {}
     for record in glob.glob(f'{post_directory}/stac*.json'):

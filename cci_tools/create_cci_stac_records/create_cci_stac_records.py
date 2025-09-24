@@ -162,8 +162,8 @@ def extract_opensearch(es_all_dict:dict):
         end_datetime = edatetime.partition('+')[0]+'Z'
     except:
         incomplete=True
-        start_datetime="0000-00-00T00:00:00Z"
-        end_datetime="0000-00-00T00:00:00Z"
+        start_datetime="0001-01-01T00:00:00Z"
+        end_datetime="0001-01-01T00:00:00Z"
 
     try:
         version = es_all_dict['projects']['opensearch'].get('productVersion')
@@ -230,8 +230,8 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
             start_datetime, end_datetime = extract_times_from_file(geotiff_file, interval=None)
             if start_datetime is None:
                 incomplete=True
-                start_datetime="0000-00-00T00:00:00Z"
-                end_datetime="0000-00-00T00:00:00Z"
+                start_datetime="0001-01-01T00:00:00Z"
+                end_datetime="0001-01-01T00:00:00Z"
 
         version   = metadata.get('product_version','Unknown')
         platforms = metadata.get('platform','Unknown')
@@ -293,7 +293,8 @@ def process_record(
         DRS: str = '',
         splitter: dict = None,
         start_time: str = None,
-        end_time: str = None
+        end_time: str = None,
+        failed_list: list = None
     )->tuple:
 
     # Mapping to split files within the same final Item.
@@ -327,11 +328,13 @@ def process_record(
             failed_list.append( f'{location}/{fname},incomplete')
         
         if stac_info['format'] == None:
-            stac_info['format'] = (file_ext[1:]).upper()
+            stac_info['format']=(file_ext[1:]).upper()
+        
+        stac_info['format'] = stac_info['format'].replace(" ", "_")
 
         if not isinstance(stac_info, dict):
             print("Error: OpenSearch record does not contain the required information to create a STAC record.")
-            return None, None
+            return None, None, failed_list
 
     elif file_ext=='.tif' or file_ext=='.TIF':
         # === GeoTIFF ===
@@ -343,31 +346,21 @@ def process_record(
 
         if not isinstance(stac_info, dict):
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
-            return None, None
+            return None, None, failed_list
 
     else:
         print(f"Error: File format {file_ext} not recognised!")
-        return None, None
+        return None, None, failed_list
     
     exts = [
         "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
         "https://stac-extensions.github.io/classification/v1.0.0/schema.json"
     ]
 
-    if suffix == '':
-        eo_bands = stac_info['format']
-    else:
-        eo_bands = 'derived'
-        exts.append("https://stac-extensions.github.io/eo/v1.1.0/schema.json")
-        # Temporary to get banding properly
+    eo_bands = stac_info['format']
 
     drs = stac_info.get('drs',None) or DRS or f"{uuid}-main"
 
-    # Split applied to file_id
-    for split, mapping in splitter.items():
-        if split in file_id:
-            file_id = file_id.replace(split, mapping[0])
-            eo_bands += mapping[1] # Asset label.
 
     # Create a dictionary of the required STAC output
     stac_dict = {
@@ -437,7 +430,7 @@ def process_record(
     if 'platform' in stac_dict['properties']:
         stac_dict['properties'].pop('platform')
 
-    return stac_dict, file_ext
+    return stac_dict, file_ext, failed_list
 
 def combine_records(recordA, recordB):
     
@@ -468,8 +461,6 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
     '''
     create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None)
 
-failed_list=[]
-
 def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None):
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
 
@@ -484,10 +475,7 @@ def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=Non
     client = Elasticsearch(hosts=['https://elasticsearch.ceda.ac.uk'],
                         headers={'x-api-key':API_KEY}
                         )
-    
-    splitter = {
-        'AGB_SD-MERGED':["AGB-MERGED",'_SD']
-    }
+    splitter=None
 
     drs = output_drs
 
@@ -500,11 +488,7 @@ def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=Non
     for cfg in cci_configurations:
 
         cci_dir = cfg[0]
-        if len(cfg) > 1:
-            drs = cfg[1]
-        if len(cfg) > 2:
-            with open(cfg[2]) as f:
-                splitter = json.load(f)
+        
 
         print(f"Input CCI directory: {cci_dir}")
         print(f"Output STAC record directory: {output_dir}")
@@ -516,95 +500,97 @@ def create_stac(cci_dirs, output_dir, output_drs, exclusion=None, start_time=Non
         response = client.search(index='opensearch-files', body=body)
         
         # Loop over OpenSearch records, converting each to STAC format
+        failed_list=[]
         count_success=0
         count_fail=0
         is_last = False
-        while len(response['hits']['hits']) == 10 or not is_last:
 
-            if len(response['hits']['hits']) != 10:
-                is_last = True
+        if len(response['hits']['hits']) == 0:
+            print("")
+            print(f"{cci_dir}: No OpenSearch hits found!")
 
-            for record in response['hits']['hits']:
+        else:
+            while len(response['hits']['hits']) == 10 or not is_last:
 
-                if exclusion in record['_source']['info']['name']:
-                    print('Skipping due to exclusion')
-                    continue
+                if len(response['hits']['hits']) != 10:
+                    is_last = True
 
-                try:
-                    # Process OpenSearch record
-                    stac_dict, file_ext = process_record(
-                        record['_source'], 
-                        STAC_API, 
-                        #suffix=suffix, 
-                        DRS=drs, 
-                        splitter=splitter,
-                        start_time=start_time,
-                        end_time=end_time)
-                except Exception as er:
-                    stac_dict, file_ext = None, None
-                    print(f"{er} Unable to create STAC record.")
-                    failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}, {er}")
-                    count_fail+=1
-                    continue
+                for record in response['hits']['hits']:
 
-                if not isinstance(stac_dict, dict):
-                    print(f"Unable to create STAC record.")
-                    failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}")
-                    count_fail+=1
-                    continue
+                    if exclusion in record['_source']['info']['name']:
+                        print('Skipping due to exclusion')
+                        continue
 
-                # Create directory for each CCI ECV/Project
-                ecv_dir=stac_dict["collection"]
-                cci_stac_dir=f"{output_dir}/{ecv_dir}/"
-
-                if not os.path.isdir(cci_stac_dir):
                     try:
-                        os.mkdir(cci_stac_dir)
-                        print(f"Created directory '{cci_stac_dir}' successfully")
-                    except PermissionError:
-                        print(f"Permission denied: Unable to make '{cci_stac_dir}'")
-                    except Exception as e:
-                        print(f"An error occured '{e}'")
-            
-                # Write 'pretty print' STAC json file
-                id=stac_dict["id"]
-                stac_file=f"{cci_stac_dir}stac_{id}.json"
+                        # Process OpenSearch record
+                        stac_dict, file_ext, failed_list = process_record(
+                            record['_source'], 
+                            STAC_API, 
+                            DRS=drs, 
+                            splitter=splitter,
+                            start_time=start_time,
+                            end_time=end_time,
+                            failed_list=failed_list)
+                    except Exception as er:
+                        stac_dict, file_ext = None, None
+                        print(f"{er} Unable to create STAC record.")
+                        failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}, {er}")
+                        count_fail+=1
+                        continue
 
-                # Merge assets with existing stac record if present.
+                    if not isinstance(stac_dict, dict):
+                        print(f"Unable to create STAC record.")
+                        failed_list.append(f"{record["sort"][0]}/{record["sort"][1]}")
+                        count_fail+=1
+                        continue
 
-                if splitter is not None:
-                    # Mapping applied so asset merging is allowed
-                    if os.path.isfile(stac_file):
-                        with open(stac_file) as f:
-                            stac_combine = json.load(f)
-                        stac_dict = combine_records(stac_dict, stac_combine)
+                    # Create directory for each CCI ECV/Project
+                    ecv_dir=stac_dict["collection"]
+                    cci_stac_dir=f"{output_dir}/{ecv_dir}/"
 
-                with open(stac_file, 'w', encoding='utf-8') as file:
-                    json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+                    if not os.path.isdir(cci_stac_dir):
+                        try:
+                            os.mkdir(cci_stac_dir)
+                            print(f"Created directory '{cci_stac_dir}' successfully")
+                        except PermissionError:
+                            print(f"Permission denied: Unable to make '{cci_stac_dir}'")
+                        except Exception as e:
+                            print(f"An error occured '{e}'")
                 
-                count_success += 1
+                    # Write 'pretty print' STAC json file
+                    id=stac_dict["id"]
+                    stac_file=f"{cci_stac_dir}stac_{id}.json"
 
-            searchAfter = response['hits']['hits'][-1]["sort"]
-            body['search_after'] = searchAfter
-            response = client.search(index='opensearch-files', body=body)
+                    with open(stac_file, 'w', encoding='utf-8') as file:
+                        json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+                    
+                    count_success += 1
 
-            if len(response["hits"]["hits"]) == 0:
-                is_last=True
-        
+                searchAfter = response['hits']['hits'][-1]["sort"]
+                body['search_after'] = searchAfter
+                response = client.search(index='opensearch-files', body=body)
+
+                if len(response["hits"]["hits"]) == 0:
+                    is_last=True
+            
+            if failed_list:
+                try:
+                    output_failed_files=f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
+                except:
+                    output_failed_files=f"{output_dir}/failed_files-no_datasetID.txt"
+
+                with open(output_failed_files, "w") as file:
+                    for item in failed_list:
+                        file.write(item + "\n")
+                print(f"The list of files for which STAC records could not be created, or that were created but are incomplete, have been written to the following file:")
+                print(output_failed_files)
+                print("")
+
         print("")
         print(f"No. of STAC records created successfully: {count_success}")
         print(f"No. of STAC records that failed: {count_fail}")
         print("")
 
-        if failed_list:
-            output_failed_files=f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
-
-            with open(output_failed_files, "w") as file:
-                for item in failed_list:
-                    file.write(item + "\n")
-            print(f"The list of files for which STAC records could not be created, or that were created but are incomplete, have been written to the following file:")
-            print(output_failed_files)
-            print("")
 
 if __name__ == "__main__":
     main()

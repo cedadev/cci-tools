@@ -89,7 +89,7 @@ def post_record(stac_record, summaries):
 def main(post_directory, openeo: bool = False):
 
     if post_directory.isnumeric():
-        path_file='~/tools/cci-tools/lotus_scripts/stac_record_paths.txt'
+        path_file='/gws/nopw/j04/esacci_portal/stac/stac_records/post_stac/stac_record_dirs_to_post.txt'
         with open(path_file) as f:
             post_directory=[r.strip() for r in f.readlines()][int(post_directory)]
 

@@ -1,0 +1,122 @@
+{
+    "id": "archived",
+    "description": "Archive for CCI collections with no items as of September 2025",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/archived"
+        },
+        {
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/archived/items",
+            "rel": "items",
+            "type": "application/json"
+        }
+    ],
+    "stac_extensions": [],
+    "title": "Climate Change Initiative",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg"
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    179.99999991618097,
+                    89.99999995809048
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1978-10-25T00:00:00Z",
+                    "2025-05-05T12:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "ESACCI"
+    ],
+    "providers": [],
+    "summaries": {
+        "projects": [
+            "Greenland Ice Sheet",
+            "Antarctic Ice Sheet",
+            "Greenhouse Gases",
+            "Sea Ice",
+            "Soil Moisture",
+            "Land Surface Temperature",
+            "Aerosol",
+            "Sea Surface Salinity",
+            "Snow",
+            "Fire",
+            "Ocean Colour",
+            "Ozone",
+            "Sea Surface Temperature",
+            "High Resolution Land Cover",
+            "Land Cover",
+            "Sea Level",
+            "Sea State",
+            "Cloud",
+            "Permafrost",
+            "Biomass",
+            "Water Vapour",
+            "Lakes",
+            "Glaciers",
+            "River Discharge",
+            "Vegetation Parameters",
+            "reccap2",
+            "sea-level-budget-closure"
+        ],
+        "ECVs": [
+            "Greenland Ice Sheet",
+            "Antarctic Ice Sheet",
+            "Greenhouse Gases",
+            "Sea Ice",
+            "Soil Moisture",
+            "Land Surface Temperature",
+            "Aerosol",
+            "Sea Surface Salinity",
+            "Snow",
+            "Fire",
+            "Ocean Colour",
+            "Ozone",
+            "Sea Surface Temperature",
+            "High Resolution Land Cover",
+            "Land Cover",
+            "Sea Level",
+            "Sea State",
+            "Cloud",
+            "Permafrost",
+            "Biomass",
+            "Water Vapour",
+            "Lakes",
+            "Glaciers",
+            "River Discharge",
+            "Vegetation Parameters"
+        ]
+    }
+}

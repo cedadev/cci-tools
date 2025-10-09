@@ -1,0 +1,257 @@
+{
+  "id": "cci_openeo",
+  "description": "Top Level Collection for Climate Change Initiative OpenEO-Compatible Data. Currently this consists of GeoTiff files from several ECV/Cross-ECV CCI projects.",
+  "stac_version": "1.1.0",
+  "links": [
+    {
+      "rel": "aggregate",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo/aggregate"
+    },
+    {
+      "rel": "aggregations",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo/aggregations"
+    },
+    {
+      "rel": "items",
+      "type": "application/geo+json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo/items"
+    },
+    {
+      "rel": "parent",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "queryables",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo/queryables"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "self",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci_openeo/queryables",
+      "rel": "queryables",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged.6-0.100m-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2010-2007-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-avhrr-ltdr-fv1.1.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-syn-fv1.1.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlc30-a02.v1-2.amazonia.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlcc30-a02.v1-2.amazonia.1990_1995.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.yr.l4.lccs.multi-sensor.multi-platform.map.2-0-7.r1.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.icesheets.yr.unspecified.iv.palsar.alos.unspecified.1-1.greenland_margin_2006_2011.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.yr.l4.map.multi-sensor.multi-platform.hrlc10-a03.v1-2.siberia.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2016-2015-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2017-2016-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2018-2017-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2019-2018-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2020-2010-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2020-2019-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2021-2020-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2022-2021-fv6.0.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.fire.mon.l3s.ba.msi-sentinel-2.sentinel-2a.msi.2-0.pixel.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlc10-a02.v1-2.amazonia.openeo",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.yr.l4.map.multi-sensor.multi-platform.hrlc30-a03.v1-2.siberia.openeo",
+      "rel": "child",
+      "type": "application/json"
+    }
+  ],
+  "stac_extensions": [],
+  "title": "Climate Change Initiative OpenEO Collection",
+  "type": "Collection",
+  "assets": {
+    "thumbnail": {
+      "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+      "type": "image/jpg",
+      "roles": [
+        "thumbnail"
+      ]
+    }
+  },
+  "license": "other",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -180,
+          -90,
+          180,
+          90
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "1982-01-01T00:00:00Z",
+          "2023-12-31T23:59:59Z"
+        ]
+      ]
+    }
+  },
+  "keywords": [
+    "ESACCI"
+  ],
+  "providers": [
+    {
+      "name": "Centre for Environmental Data Analysis (CEDA)",
+      "roles": [
+        "host"
+      ],
+      "url": "https://catalogue.ceda.ac.uk"
+    },
+    {
+        "name": "ESA Open Data Portal (ODP)",
+        "roles":[
+            "host"
+        ],
+        "url": "https://climate.esa.int/data/"
+    }
+  ],
+  "summaries": {
+    "projects": [
+      "Greenland Ice Sheet",
+      "Antarctic Ice Sheet",
+      "Greenhouse Gases",
+      "Sea Ice",
+      "Soil Moisture",
+      "Land Surface Temperature",
+      "Aerosol",
+      "Sea Surface Salinity",
+      "Snow",
+      "Fire",
+      "Ocean Colour",
+      "Ozone",
+      "Sea Surface Temperature",
+      "High Resolution Land Cover",
+      "Land Cover",
+      "Sea Level",
+      "Sea State",
+      "Cloud",
+      "Permafrost",
+      "Biomass",
+      "Water Vapour",
+      "Lakes",
+      "Glaciers",
+      "River Discharge",
+      "Vegetation Parameters",
+      "reccap2",
+      "sea-level-budget-closure"
+    ],
+    "ECVs": [
+      "Greenland Ice Sheet",
+      "Antarctic Ice Sheet",
+      "Greenhouse Gases",
+      "Sea Ice",
+      "Soil Moisture",
+      "Land Surface Temperature",
+      "Aerosol",
+      "Sea Surface Salinity",
+      "Snow",
+      "Fire",
+      "Ocean Colour",
+      "Ozone",
+      "Sea Surface Temperature",
+      "High Resolution Land Cover",
+      "Land Cover",
+      "Sea Level",
+      "Sea State",
+      "Cloud",
+      "Permafrost",
+      "Biomass",
+      "Water Vapour",
+      "Lakes",
+      "Glaciers",
+      "River Discharge",
+      "Vegetation Parameters"
+    ]
+  }
+}

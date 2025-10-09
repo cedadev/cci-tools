@@ -1,0 +1,6 @@
+{
+    "AGB_SD-MERGED":["AGB-MERGED","AGB_SD"],
+    "AGB-MERGED":["AGB-MERGED","AGB"],
+    "DIFF_QF":["DIFF","QF"],
+    "DIFF_SD":["DIFF","QF_SD"]
+}

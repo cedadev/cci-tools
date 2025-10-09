@@ -1,0 +1,66 @@
+{
+    "id": "sea_level_budget_closure",
+    "description": "This project intends to analyse in an integrative context recent results obtained by the ESA CCI programme for the sea level, glaciers and ice sheets Essential Climate Variables (ECV), with additional account for assessments of the ocean thermal expansion component which utilise the CCI Sea Surface Temperature ECV. Among other objectives, an important task will consist of assessing the quality of the CCI products involved in the sea level budget.",
+    "stac_version": "1.1.0",
+    "stac_extensions": [],
+    "title": "Sea Level Budget Closure",
+    "type": "Collection",
+    "license": "other",
+    "links": [
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/cci"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_level_budget_closure"
+        }
+    ],
+    "assets": {
+        "thumbnail": {
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg"
+        }
+    },
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1993-01-01T00:00:00Z",
+                    "2016-12-31T23:59:59Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "sea_level_budget_closure",
+        "ESACCI",
+        "sea-level-budget-closure"
+    ],
+    "providers": [],
+    "summaries": {
+        "project": [
+            "sea-level-budget-closure"
+        ]
+    }
+}

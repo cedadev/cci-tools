@@ -1,0 +1,98 @@
+{
+    "id": "esacci-l3s_fire-ba-avhrr-ltdr-fv1.1.openeo",
+    "description": "The ESA Fire Disturbance Climate Change Initiative (CCI) project has produced maps of global burned area derived from satellite observations. The AVHRR - LTDR Pixel v1.1 product described here contains gridded data of global burned area derived from spectral information from the AVHRR (Advanced Very High Resolution Radiometer) Land Long Term Data Record (LTDR) v5 dataset produced by NASA.\r\n\r\nThe dataset provides monthly information on global burned area at 0.05-degree spatial resolution (the resolution of the AVHRR-LTDR input data) from 1982 to 2018. The year 1994 is omitted as there was not enough input data for this year. The dataset is distributed in monthly GeoTIFF files, packed in annual tar.gz files, and it includes 5 files: date of BA detection (labelled JD), confidence label (CL), burned area in each pixel (BA), number of observations in the month (OB) and a metadata file. For further information on the product and its format see the Product User Guide.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-avhrr-ltdr-fv1.1.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-avhrr-ltdr-fv1.1.openeo"
+        },
+        {
+            "rel": "ceda_catalogue",
+            "type": "text/html",
+            "href": "https://catalogue.ceda.ac.uk/uuid/b1bd715112ca43ab948226d11d72b85e"
+        },
+        {
+            "rel": "opensearch",
+            "type": "text/html",
+            "href": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=b1bd715112ca43ab948226d11d72b85e"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "ESACCI-L3S_FIRE-BA-AVHRR-LTDR-fv1.1.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2025-09-19T00:00:00Z",
+                    "2025-09-19T00:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "Climate Change",
+        "GCOS Essential Climate Variable",
+        "Burned Area",
+        "geotiff",
+        "Fire Disturbance",
+        "Pixel",
+        "openeo",
+        "esacci-l3s_fire-ba-avhrr-ltdr-fv1",
+        "CCI",
+        "1",
+        "ESA",
+        "b1bd715112ca43ab948226d11d72b85e"
+    ],
+    "providers": [
+        {
+            "roles": [
+                "host"
+            ],
+            "name": "Centre for Environmental Data Analysis (CEDA)",
+            "url": "https://catalogue.ceda.ac.uk"
+        }
+    ],
+    "summaries": null
+}

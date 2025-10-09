@@ -1,0 +1,101 @@
+{
+    "id": "esacci.lc.yr.l4.lccs.multi-sensor.multi-platform.map.2-0-7.r1.openeo",
+    "description": "As part of the ESA Land Cover Climate Change Initiative (CCI) project a new set of Global Land Cover Maps have been produced. These maps are available at 300m spatial resolution for each year between 1992 and 2015.\r\n\r\nEach pixel value corresponds to the classification of a land cover class defined based on the UN Land Cover Classification System (LCCS).  The reliability of the classifications made are documented by the four quality flags (decribed further in the Product User Guide) that accompany these maps.    Data are provided in both NetCDF and GeoTiff format.\r\n\r\nFurther Land Cover CCI products, user tools and a product viewer are available at: http://maps.elie.ucl.ac.be/CCI/viewer/index.php .   Maps for the 2016-2020 time period have been produced in the context of the Copernicus Climate Change service, and can be downloaded from the Copernicus Climate Data Store (CDS).",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.yr.l4.lccs.multi-sensor.multi-platform.map.2-0-7.r1.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.yr.l4.lccs.multi-sensor.multi-platform.map.2-0-7.r1.openeo"
+        },
+        {
+            "rel": "ceda_catalogue",
+            "type": "text/html",
+            "href": "https://catalogue.ceda.ac.uk/uuid/b382ebe6679d44b8b0e68ea4ef4b701c"
+        },
+        {
+            "rel": "opensearch",
+            "type": "text/html",
+            "href": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=b382ebe6679d44b8b0e68ea4ef4b701c"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "esacci.LC.yr.L4.LCCS.multi-sensor.multi-platform.Map.2-0-7.r1.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1992-01-01T00:00:00.000Z",
+                    "2015-12-31T00:00:00.000Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "CCI",
+        "geotiff",
+        "map",
+        "openeo",
+        "yr",
+        "multi-sensor",
+        "lccs",
+        "2-0-7",
+        "multi-platform",
+        "Land Cover",
+        "esacci",
+        "r1",
+        "l4",
+        "lc",
+        "b382ebe6679d44b8b0e68ea4ef4b701c"
+    ],
+    "providers": [
+        {
+            "roles": [
+                "host"
+            ],
+            "name": "Centre for Environmental Data Analysis (CEDA)",
+            "url": "https://catalogue.ceda.ac.uk"
+        }
+    ],
+    "summaries": null
+}

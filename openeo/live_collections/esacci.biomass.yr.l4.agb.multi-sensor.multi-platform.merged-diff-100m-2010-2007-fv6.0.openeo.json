@@ -1,0 +1,100 @@
+{
+    "id": "esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2010-2007-fv6.0.openeo",
+    "description": "This dataset comprises estimates of forest above-ground biomass (AGB) for the years 2007, 2010, 2015, 2016, 2017, 2018, 2019, 2020, 2021 and 2022. They are derived from a combination of Earth observation data, depending on the year, from the Copernicus Sentinel-1 mission, Envisat\u2019s ASAR (Advanced Synthetic Aperture Radar) instrument and JAXA\u2019s (Japan Aerospace Exploration Agency) Advanced Land Observing Satellite (ALOS-1 and ALOS-2), along with additional information from Earth observation sources. The data has been produced as part of the European Space Agency's (ESA's) Climate Change Initiative (CCI) programme by the Biomass CCI team.\r\n\r\nThis release of the data is version 6. Compared to version 5, version 6 consists of an update of the maps of AGB for the years 2010, 2015, 2016, 2017, 2018, 2019, 2020, 2021 and new AGB maps for 2007 and 2022. AGB change maps have been created for consecutive years (e.g., 2020-2019), for a decadal interval (2020-2010) as well as for the interval 2010-2007. The pool of remote sensing data includes multi-temporal observations at L-band for all biomes and for all years and extended ICESat-2 observations to calibrate retrieval models. A cost function that preserves the temporal features as expressed in the remote sensing data has been refined to limit biases between the 2007-2010 and the 2015+ maps.\r\n\r\nThe data products consist of two (2) global layers that include estimates of:\r\n1) above ground biomass (AGB, unit: tons/ha i.e., Mg/ha) (raster dataset). This is defined as the mass, expressed as oven-dry weight of the woody parts (stem, bark, branches and twigs) of all living trees excluding stump and roots per unit area\r\n2) per-pixel estimates of above-ground biomass uncertainty expressed as the standard deviation in Mg/ha (raster dataset)\r\n\r\nAdditionally provided in this version release are aggregated data products. These aggregated products of the AGB and AGB change data layers are available at coarser resolutions (1, 10, 25 and 50km).\r\n\r\nIn addition, files describing the AGB change between two consecutive years (i.e., 2016-2015, 2017-2016, 2018-2017, 2019-2018, 2020-2019, 2021-2020, 2022-2021), over a decade (2020-2010) and over 2010-2007 are provided. Each AGB change product consists of two sets of maps: the standard deviation of the AGB change and a quality flag of the AGB change. Note that the change itself can be simply computed as the difference between two AGB maps, so is not provided directly.\r\n\r\nData are provided in both netcdf and geotiff format.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2010-2007-fv6.0.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.biomass.yr.l4.agb.multi-sensor.multi-platform.merged-diff-100m-2010-2007-fv6.0.openeo"
+        },
+        {
+            "rel": "ceda_catalogue",
+            "type": "text/html",
+            "href": "https://catalogue.ceda.ac.uk/uuid/95913ffb6467447ca72c4e9d8cf30501"
+        },
+        {
+            "rel": "opensearch",
+            "type": "text/html",
+            "href": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=95913ffb6467447ca72c4e9d8cf30501"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "ESACCI.BIOMASS.yr.L4.AGB.multi-sensor.multi-platform.MERGED-DIFF-100m-2010-2007-fv6.0.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2007-01-01T00:00:00.000Z",
+                    "2022-12-31T23:59:59.000Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "merged-diff-100m-2010-2007-fv6",
+        "ESA",
+        "geotiff",
+        "0",
+        "yr",
+        "multi-platform",
+        "agb",
+        "openeo",
+        "esacci",
+        "multi-sensor",
+        "biomass",
+        "Biomass",
+        "l4",
+        "CCI"
+    ],
+    "providers": [
+        {
+            "roles": [
+                "host"
+            ],
+            "name": "Centre for Environmental Data Analysis (CEDA)",
+            "url": "https://catalogue.ceda.ac.uk"
+        }
+    ],
+    "summaries": null
+}

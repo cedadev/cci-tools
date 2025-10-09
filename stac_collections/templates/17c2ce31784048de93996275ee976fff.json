@@ -1,0 +1,82 @@
+{
+    "id": "17c2ce31784048de93996275ee976fff",
+    "description": "This dataset is a compilation of time series, together with uncertainties, of the following elements of the global mean sea level budget and ocean mass budget:\n(a) global mean sea level\n(b) the steric contribution to global mean sea level, that is, the effect of ocean water density change, which is dominated, on a global average, by thermal expansion\n(c) the mass contribution to global mean sea level\n(d) the global glaciers contribution (excluding Greenland and Antarctica)\n(e) the Greenland Ice Sheet and Greenland peripheral glaciers contribution\n(f) the Antarctic Ice Sheet contribution\n(g) the contribution from changes in land water storage (including snow cover).\n\nThe compilation is a result from the Sea-level Budget Closure (SLBC_cci) project conducted in the framework of ESA’s Climate Change Initiative (CCI). It provides assessments of the global mean sea level and ocean mass budgets. Assessment of the global mean sea level budget means to assess how well (a) agrees, within uncertainties, to the sum of (b) and (c) or to the sum of (b), (d), (e), (f) and (g). Assessment of the ocean mass budget means to assess how well (c) agrees to the sum (d), (e), (f) and (g).\n\nAll time series are expressed in terms of anomalies (in millimetres of equivalent global mean sea level) with respect to the mean value over the 10-year reference period 2006-2015.\nThe temporal resolution is monthly. The temporal range is from January 1993 to December 2016. Some time series do not cover this full temporal range. All time series are complete over the temporal range from January 2003 to August 2016.\n\nFor some elements, more than one time series are given, as a result of different assessments from different data sources and methods.\n\nData and methods underlying the time series are as follows:\n(a) satellite altimetry analysis by the Sea Level CCI project.\n(b) a new analysis of Argo drifter data with incorporation of sea surface temperature data; an alternative time series consists in an ensemble mean over previous global mean steric sea level anomaly time series.\n(c) analysis of monthly global gravity field solutions from the Gravity Recovery and Climate Experiment (GRACE) satellite gravimetry mission.\n(d) results from a global glacier model.\n(e) analysis of satellite radar altimetry over the Greenland Ice Sheet, amended by results from the global glacier model for the Greenland peripheral glaciers; an alternative time series consists of results from GRACE satellite gravimetry.\n(f) analysis of satellite radar altimetry over the Antarctic Ice Sheet; an alternative time series consists of results from GRACE satellite gravimetry.\n(g) results from the WaterGAP global hydrological model.\n\nVersion 2.2 is an update of the previous Version 2.1. The update concerns the estimates of ocean mass change from GRACE.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "queryables",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff/queryables"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff"
+        },
+        {
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main",
+            "rel": "child",
+            "type": "application/json"
+        }
+    ],
+    "stac_extensions": [],
+    "title": "ESA Sea Level Budget Closure Climate Change Initiative (SLBC_cci): Time series of global mean sea level budget and ocean mass budget elements (1993-2016, at monthly resolution), version 2.2",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1993-01-01T00:00:00Z",
+                    "2016-12-31T23:59:59Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "sea_level_budget_closure",
+        "ESACCI",
+        "sea-level-budget-closure",
+        "17c2ce31784048de93996275ee976fff"
+    ],
+    "providers": [],
+    "summaries": {
+        "project": [
+            "sea-level-budget-closure"
+        ]
+    }
+}

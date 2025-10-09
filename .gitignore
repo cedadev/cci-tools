@@ -4,3 +4,4 @@ AUTH_CREDENTIALS
 API_CREDENTIALS
 stac_collections/gen
 openeo/records/
+tests/

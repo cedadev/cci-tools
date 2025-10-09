@@ -1,0 +1,3 @@
+/neodc/esacci/high_resolution_land_cover/data/land_cover_maps/A02_Amazonia/historical/v1.2/geotiff/HRLC30/tiles,esacci.LC.5-yrs.L4.Map.multi-sensor.multi-platform.HRLC30-A02.v1-2.Amazonia,/home/users/dwest77/cedadev/cci/cci-tools/openeo/splitters/hrlc_5.json
+/neodc/esacci/high_resolution_land_cover/data/land_cover_maps/A02_Amazonia/historical/v1.2/geotiff/HRLCC30/tiles,esacci.LC.5-yrs.L4.Map.multi-sensor.multi-platform.HRLCC30-A02.v1-2.Amazonia.1990_1995,change_detection
+/neodc/esacci/high_resolution_land_cover/data/land_cover_maps/A03_Siberia/static/v1.2/geotiff/HRLC10/tiles,esacci.LC.yr.L4.Map.multi-sensor.multi-platform.HRLC10-A03.v1-2.Siberia,/home/users/dwest77/cedadev/cci/cci-tools/openeo/splitters/hrlc_5.json

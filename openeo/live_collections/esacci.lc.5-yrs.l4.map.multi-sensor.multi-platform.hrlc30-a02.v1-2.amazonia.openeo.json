@@ -1,0 +1,102 @@
+{
+    "id": "esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlc30-a02.v1-2.amazonia.openeo",
+    "description": "This dataset contains high resolution (HR) land cover (LC) and land cover change (LCC) maps of a subregion of Amazonia, produced by the ESA High Resolution Land Cover (HRLC) Climate Change Initiative (CCI) project.   It consists of the following products:\r\n\r\n1) HRLC30: High Resolution Land Cover Maps at 30m spatial resolution for years 1990, 1995, 2000, 2005, 2010, 2015, 2019.\r\n2) HRLCC30: High Resolution Land Cover Change Maps at 30m spatial resolution of yearly changes. A map every 5 years (1990-1995, 1995-2000, 2000-2005, 2005-2010, 2010-2015,2015-2019) is provided which reports (high priority) changed pixels and their year within the 5-years temporal interval.\r\n3) Associated uncertainty products.\r\n\r\nThey cover the geographic range (23.6\u00b0S \u2013 11.7\u00b0S; 46.7\u00b0W \u2013 62.1\u00b0W).\r\n\r\nThe data are provided as both GeoTIFF tiles following the Sentinel-2 MGRS tiling scheme and as a GeoTiff format mosaic. These maps are also referred to as historical maps.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlc30-a02.v1-2.amazonia.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci.lc.5-yrs.l4.map.multi-sensor.multi-platform.hrlc30-a02.v1-2.amazonia.openeo"
+        },
+        {
+            "rel": "ceda_catalogue",
+            "type": "text/html",
+            "href": "https://catalogue.ceda.ac.uk/uuid/b053b51e854d484a9657f6bfb5ebd516"
+        },
+        {
+            "rel": "opensearch",
+            "type": "text/html",
+            "href": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=b053b51e854d484a9657f6bfb5ebd516"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "esacci.LC.5-yrs.L4.Map.multi-sensor.multi-platform.HRLC30-A02.v1-2.Amazonia.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2025-09-19T00:00:00Z",
+                    "2025-09-19T00:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "hrlc30-a02",
+        "5-yrs",
+        "lc",
+        "CCI",
+        "High Resolution",
+        "map",
+        "multi-platform",
+        "v1-2",
+        "multi-sensor",
+        "openeo",
+        "Land Cover",
+        "amazonia",
+        "l4",
+        "esacci",
+        "geotiff",
+        "b053b51e854d484a9657f6bfb5ebd516"
+    ],
+    "providers": [
+        {
+            "roles": [
+                "host"
+            ],
+            "name": "Centre for Environmental Data Analysis (CEDA)",
+            "url": "https://catalogue.ceda.ac.uk"
+        }
+    ],
+    "summaries": null
+}

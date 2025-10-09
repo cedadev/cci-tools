@@ -1,0 +1,98 @@
+{
+    "id": "esacci-l3s_fire-ba-meris-fv04.1.openeo",
+    "description": "The ESA Fire Climate Change Initiative (CCI) dataset consists of maps of global burned areas for years 2005 to 2011, developed from satellite observations. The products are distributed as 6 continental tiles and are based upon spectral information from the Medium Resolution Imaging Spectrometer (MERIS), on board the ESA ENVISAT satellite and thermal information from the MODIS active fires product.\r\n\r\nThe Pixel product includes maps at 0.00277778-degree (approx. 300m)  resolution. Burned area (BA) information is included in 3 layers: date of BA detection, the confidence level (a probability value estimating the confidence that a pixel is actually burned), and the land cover information as defined in the Land Cover CCI v1.6.1 product.\r\n\r\nFiles are in GeoTIFF format using a geographic coordinate system based on the World Geodetic System (WGS84) reference ellipsoid and using Plate Carr\u00e9e projection with geographical coordinates of equal pixel size. For further information on the product and its format see the Fire_cci Product User Guide in the linked documentation.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-meris-fv04.1.openeo/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/esacci-l3s_fire-ba-meris-fv04.1.openeo"
+        },
+        {
+            "rel": "ceda_catalogue",
+            "type": "text/html",
+            "href": "https://catalogue.ceda.ac.uk/uuid/3a3503a06f69429e8a4827592e23787e"
+        },
+        {
+            "rel": "opensearch",
+            "type": "text/html",
+            "href": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=3a3503a06f69429e8a4827592e23787e"
+        }
+    ],
+    "stac_extensions": [
+        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
+        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
+        "https://stac-extensions.github.io/eo/v1.1.0/schema.json"
+    ],
+    "title": "ESACCI-L3S_FIRE-BA-MERIS-fv04.1.openeo",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "2025-09-19T00:00:00Z",
+                    "2025-09-19T00:00:00Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "GCOS",
+        "Fire Disturbance",
+        "openeo",
+        "Climate Change",
+        "Burned Area",
+        "CCI",
+        "geotiff",
+        "1",
+        "ESA",
+        "PIXEL",
+        "esacci-l3s_fire-ba-meris-fv04",
+        "3a3503a06f69429e8a4827592e23787e"
+    ],
+    "providers": [
+        {
+            "roles": [
+                "host"
+            ],
+            "name": "Centre for Environmental Data Analysis (CEDA)",
+            "url": "https://catalogue.ceda.ac.uk"
+        }
+    ],
+    "summaries": null
+}

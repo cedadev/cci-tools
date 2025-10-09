@@ -1,0 +1,3 @@
+/neodc/esacci/fire/data/burned_area/AVHRR-LTDR/pixel/v1.1,esacci-l3s_fire-ba-avhrr-ltdr-fv1.1,/home/users/dwest77/cedadev/cci/cci-tools/openeo/splitters/fire_avhrr.json
+/neodc/esacci/fire/data/burned_area/MERIS/pixel/v4.1,esacci-l3s_fire-ba-meris-fv04.1,BA
+/neodc/esacci/fire/data/burned_area/Sentinel3_SYN/pixel/v1.1,esacci-l3s_fire-ba-syn-fv1.1,/home/users/dwest77/cedadev/cci/cci-tools/openeo/splitters/fire_syn.json

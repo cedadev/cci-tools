@@ -1,0 +1,277 @@
+{
+  "id": "cci",
+  "description": "Top Level Collection for Climate Change Initiative Data - Prototype",
+  "stac_version": "1.1.0",
+  "links": [
+    {
+      "rel": "items",
+      "type": "application/geo+json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci/items"
+    },
+    {
+      "rel": "parent",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "queryables",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci/queryables"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "self",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cci"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/greenland_ice_sheet",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/antarctic_ice_sheet",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/greenhouse_gases",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_ice",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/soil_moisture",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/land_surface_temperature",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/aerosol",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_surface_salinity",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/snow",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/fire",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/ocean_colour",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/ozone",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_surface_temperature",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/high_resolution_land_cover",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/land_cover",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_level",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_state",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/cloud",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/permafrost",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/biomass",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/water_vapour",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/lakes",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/glaciers",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/river_discharge",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/vegetation_parameters",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/reccap2",
+      "rel": "child",
+      "type": "application/json"
+    },
+    {
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/sea_level_budget_closure",
+      "rel": "child",
+      "type": "application/json"
+    }
+  ],
+  "stac_extensions": [],
+  "title": "Climate Change Initiative",
+  "type": "Collection",
+  "assets": {
+    "thumbnail": {
+      "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+      "type": "image/jpg",
+      "roles": [
+        "thumbnail"
+      ]
+    }
+  },
+  "license": "other",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [
+          -180,
+          -90,
+          179.99999991618097,
+          89.99999995809048
+        ]
+      ]
+    },
+    "temporal": {
+      "interval": [
+        [
+          "1978-10-25T00:00:00Z",
+          "2025-05-05T12:00:00Z"
+        ]
+      ]
+    }
+  },
+  "keywords": [
+    "ESACCI"
+  ],
+  "providers": [
+    {
+      "name": "Centre for Environmental Data Analysis (CEDA)",
+      "roles": [
+        "host"
+      ],
+      "url": "https://catalogue.ceda.ac.uk"
+    },
+    {
+        "name": "ESA Open Data Portal (ODP)",
+        "roles":[
+            "host"
+        ],
+        "url": "https://climate.esa.int/data/"
+    }
+  ],
+  "summaries": {
+    "projects": [
+      "Greenland Ice Sheet",
+      "Antarctic Ice Sheet",
+      "Greenhouse Gases",
+      "Sea Ice",
+      "Soil Moisture",
+      "Land Surface Temperature",
+      "Aerosol",
+      "Sea Surface Salinity",
+      "Snow",
+      "Fire",
+      "Ocean Colour",
+      "Ozone",
+      "Sea Surface Temperature",
+      "High Resolution Land Cover",
+      "Land Cover",
+      "Sea Level",
+      "Sea State",
+      "Cloud",
+      "Permafrost",
+      "Biomass",
+      "Water Vapour",
+      "Lakes",
+      "Glaciers",
+      "River Discharge",
+      "Vegetation Parameters",
+      "reccap2",
+      "sea-level-budget-closure"
+    ],
+    "ECVs": [
+      "Greenland Ice Sheet",
+      "Antarctic Ice Sheet",
+      "Greenhouse Gases",
+      "Sea Ice",
+      "Soil Moisture",
+      "Land Surface Temperature",
+      "Aerosol",
+      "Sea Surface Salinity",
+      "Snow",
+      "Fire",
+      "Ocean Colour",
+      "Ozone",
+      "Sea Surface Temperature",
+      "High Resolution Land Cover",
+      "Land Cover",
+      "Sea Level",
+      "Sea State",
+      "Cloud",
+      "Permafrost",
+      "Biomass",
+      "Water Vapour",
+      "Lakes",
+      "Glaciers",
+      "River Discharge",
+      "Vegetation Parameters"
+    ]
+  }
+}

@@ -1,5 +1,5 @@
 {
-  "id": null,
+  "id": "test",
   "description": null,
   "stac_version": "1.1.0",
   "stac_extensions": [],
@@ -24,10 +24,13 @@
   },
   "extent": {
     "spatial": {
-      "bbox": null
+      "bbox": [-180,-90,180,90]
     },
     "temporal": {
-      "interval": null
+      "interval": [
+        "2025-01-01T00:00:00Z",
+        "2025-01-01T00:00:01Z"
+      ]
     }
   },
   "keywords": null,

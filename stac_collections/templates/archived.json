@@ -1,32 +1,12 @@
 {
-    "id": "cci_openeo",
-    "description": "Top Level Collection for Climate Change Initiative OpenEO-Compatible Data",
+    "id": "archived",
+    "description": "Archive for CCI collections with no items as of September 2025",
     "stac_version": "1.1.0",
     "links": [
-        {
-            "rel": "aggregate",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci_openeo/aggregate"
-        },
-        {
-            "rel": "aggregations",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci_openeo/aggregations"
-        },
-        {
-            "rel": "items",
-            "type": "application/geo+json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci_openeo/items"
-        },
         {
             "rel": "parent",
             "type": "application/json",
             "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
-        },
-        {
-            "rel": "queryables",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci_openeo/queryables"
         },
         {
             "rel": "root",
@@ -34,18 +14,18 @@
             "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/"
         },
         {
-            "rel": "child",
-            "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/greenland_ice_sheet2"
-        },
-        {
             "rel": "self",
             "type": "application/json",
-            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci_openeo"
+            "href": "https://api.stac-master.rancher2.130.246.130.221.nip.io/collections/archived"
+        },
+        {
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/archived/items",
+            "rel": "items",
+            "type": "application/json"
         }
     ],
     "stac_extensions": [],
-    "title": "Climate Change Initiative OpenEO Collection",
+    "title": "Climate Change Initiative",
     "type": "Collection",
     "assets": {
         "thumbnail": {
@@ -71,7 +51,7 @@
         "temporal": {
             "interval": [
                 [
-                    "1990-01-01T00:00:00Z",
+                    "1978-10-25T00:00:00Z",
                     "2025-05-05T12:00:00Z"
                 ]
             ]

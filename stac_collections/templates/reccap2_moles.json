@@ -1,0 +1,80 @@
+{
+    "id": "1d01d0efb6c24c218489605b5aa44cf5",
+    "description": "To aid methane emission modelling within ESA's Regional Carbon Cycle Assessment and Processes Phase 2 (RECCAP-2) project, a methane-centric wetland dataset based on the Global Inundation Estimate from Multiple Satellites (GIEMS-2) database has been produced.\n\nThe GIEMS-2 database provides the monthly extent of the continental water surfaces, including lakes, rivers, wetlands, and rice paddies, from 1992 to 2015, as described in Prigent et al. (2020). It is on a 0.25 x 0.25 degree regular grid in latitude and longitude. It has recently been extended to 2020 within the RECCAP-2 project.\n\nFor methane emission modeling, three water surface types are usually considered separately: the permanent water surfaces (such as lakes, rivers, and reservoirs), the rice paddies, and the wetlands (i.e., the remaining water surfaces). As a consequence, the possibility to separate these contributions within the GIEMS pixels is required. This methane-centric GIEMS dataset isolates wetlands from the other surface waters in order to facilitate the estimation of the wetland methane emissions.",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/1d01d0efb6c24c218489605b5aa44cf5/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "queryables",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/1d01d0efb6c24c218489605b5aa44cf5/queryables"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/1d01d0efb6c24c218489605b5aa44cf5"
+        },
+        {
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/1d01d0efb6c24c218489605b5aa44cf5-main",
+            "rel": "child",
+            "type": "application/json"
+        }
+    ],
+    "stac_extensions": [],
+    "title": "ESA RECCAP-2 Climate Change Initiative (RECCAP2_cci): Methane-Centric Wetland Dataset Based on GIEMS (1992-2020), v1.0",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1992-01-01T00:00:00Z",
+                    "2020-12-31T23:59:59Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "ESACCI",
+        "RECCAP-2",
+        "1d01d0efb6c24c218489605b5aa44cf5",
+        "giems",
+        "wetland",
+        "methane"
+    ],
+    "providers": [],
+    "summaries": null
+}

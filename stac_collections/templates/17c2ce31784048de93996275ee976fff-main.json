@@ -1,0 +1,72 @@
+{
+  "id": "17c2ce31784048de93996275ee976fff-main",
+  "description": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=17c2ce31784048de93996275ee976fff",
+  "stac_version": "1.1.0",
+  "links": [
+    {
+      "rel": "items",
+      "type": "application/geo+json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main/items"
+    },
+    {
+      "rel": "parent",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "queryables",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main/queryables"
+    },
+    {
+      "rel": "root",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/"
+    },
+    {
+      "rel": "self",
+      "type": "application/json",
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main"
+    }
+  ],
+  "stac_extensions": [],
+  "title": "(NonDRS) ESA Sea Level Budget Closure Climate Change Initiative (SLBC_cci): Time series of global mean sea level budget and ocean mass budget elements (1993-2016, at monthly resolution), version 2.2",
+  "type": "Collection",
+  "assets": {
+    "thumbnail": {
+      "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+      "type": "image/jpg",
+      "roles": [
+        "thumbnail"
+      ]
+    }
+  },
+  "license": "other",
+  "extent": {
+    "spatial": {
+      "bbox": [
+        [-180, -90, 180, 90]
+      ]
+    },
+    "temporal": {
+            "interval": [
+                [
+                    "1993-01-01T00:00:00Z",
+                    "2016-12-31T23:59:59Z"
+                ]
+            ]
+        }
+  },
+  "keywords": [
+        "sea_level_budget_closure",
+        "ESACCI",
+        "sea-level-budget-closure",
+        "17c2ce31784048de93996275ee976fff"
+    ],
+    "providers": [],
+    "summaries": {
+        "project": [
+            "sea-level-budget-closure"
+        ]
+  }
+}

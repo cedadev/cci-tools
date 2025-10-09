@@ -36,7 +36,7 @@ auth = OAuth2ClientCredentials(
 )
 
 def post_record(stac_record, summaries):
-        
+
     with open(stac_record, 'r') as file:
         # Load STAC record
         stac_data=json.load(file)
@@ -80,12 +80,18 @@ def post_record(stac_record, summaries):
             )
         
     print('Item:',item_id, response)
+    #print('Item:',item_id, response.content)
     return summaries
 
 @click.command()
 @click.argument('post_directory', type=click.Path(exists=True))
 @click.option('--openeo', help='Flag for enabling openEO-specific posting rules',is_flag=True)
 def main(post_directory, openeo: bool = False):
+
+    if post_directory.isnumeric():
+        path_file='/gws/nopw/j04/esacci_portal/stac/stac_records/post_stac/stac_record_dirs_to_post.txt'
+        with open(path_file) as f:
+            post_directory=[r.strip() for r in f.readlines()][int(post_directory)]
 
     summaries = {}
     for record in glob.glob(f'{post_directory}/**/stac*.json', recursive=True):

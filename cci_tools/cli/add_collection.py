@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 # Click-based script for interfacing with the cci_tools library
 # to create new collections in the nested cci structure.
-from cci_tools.utils import client, auth, STAC_API
+from cci_tools.collection.utils import client, auth, STAC_API
 from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,
@@ -66,11 +66,12 @@ def get_drs_reference(id):
               help='What type of nested collection to create', required=True)
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
+@click.option('--uuid', 'uuid', is_flag=True, required=False)
 
 
 def main(parent: str, child: str, 
          create: str = None, overwrite: bool = False,
-         dryrun: bool = False):
+         dryrun: bool = False, uuid: str = None):
     # Add collection by DRS to a parent moles ID
     # Add/refresh moles collection
 
@@ -87,20 +88,33 @@ def main(parent: str, child: str,
     if str(presp.status_code)[0] != '2':
         raise ValueError(f'Parent could not be fetched: {presp.content}')
     
+    pdata = presp.json()
+    
     match create:
         case 'project':
-            parent = create_project_collection(child, parent, 
+            pdata = create_project_collection(child, pdata, 
                                                project_kwargs=get_project_kwargs(),
                                                overwrite=overwrite,
                                                api_key=api_key,
                                                dryrun=dryrun)
         case 'moles':
-            parent = add_uuid_collection(parent, child, 
+            pdata = add_uuid_collection(pdata, child, 
                                          overwrite=overwrite, dryrun=dryrun,
                                          api_key=api_key)
         case 'drs':
-            parent = add_drs_collection(parent, get_drs_reference(child),
-                                        overwrite=overwrite, dryrun=dryrun)
+            pdata = add_drs_collection(pdata, get_drs_reference(child),
+                                        overwrite=overwrite, dryrun=dryrun,
+                                        uuid=parent)
+        case 'openeo':
+            if uuid is None:
+                raise ValueError('Missing UUID for this OpenEO collection')
+            
+            pdata = add_drs_collection(pdata, get_drs_reference(child),
+                                        suffix='.openeo', overwrite=overwrite,
+                                        dryrun=dryrun, uuid=uuid)
+
+    print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
+
 
 if __name__ == '__main__':
     main()

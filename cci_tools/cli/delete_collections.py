@@ -5,30 +5,40 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import click
 from time import sleep
 
-from cci_tools.utils import STAC_API, client, auth, dryrun
+from cci_tools.collection.utils import STAC_API, client, auth, dryrun
 
-def remove_items(item_url, dryrun=True):
+def remove_items(item_url, dryrun=True, item_aggregations=False):
     """
     Remove all items for a specific collection."""
 
     item_data = {'features':[None]}
-    while len(item_data['features']) > 0:
+    deleted_items = True
+    while deleted_items:
 
+        deleted_items = False
         resp = client.get(item_url)
         if resp.status_code == 404:
-            break
+            return
         item_data = resp.json()
 
         for item in item_data['features']:
+            if not item_aggregations and item["properties"].get('aggregation'):
+                # If not deleting aggregations, skip aggregated items
+                print(f'SKIP_A {item_url}/{item["id"]}')
+                continue
+            
             print(f'DELETE {item_url}/{item["id"]}')
             if not dryrun:
-                client.delete(f'{item_url}/{item["id"]}',auth=auth)
+                deleted_items = True
+                print(client.delete(f'{item_url}/{item["id"]}',auth=auth))
                 sleep(0.1)
 
         if dryrun:
             return
 
-def recursive_removal(collection, depth, top_only=False, lowest_only=False, dryrun=True, delete_depth=None):
+def recursive_removal(collection, depth, top_only=False, lowest_only=False, 
+                      keep_collections=False, dryrun=True, delete_depth=None, 
+                      item_aggregations=False):
     """
     Remove collections recursively so no collections are left orphaned.
     
@@ -43,15 +53,20 @@ def recursive_removal(collection, depth, top_only=False, lowest_only=False, dryr
     
     coll_data = resp.json()
 
-    remove_items(f'{collection}/items', dryrun=dryrun)
+    remove_items(f'{collection}/items', dryrun=dryrun, item_aggregations=item_aggregations)
 
     if not top_only:
         for link in coll_data['links']:
             if link['rel'] == 'child':
-                recursive_removal(link['href'], depth+1, lowest_only=lowest_only, dryrun=dryrun, delete_depth=delete_depth)
+                recursive_removal(link['href'], depth+1, lowest_only=lowest_only, 
+                                keep_collections=keep_collections,
+                                dryrun=dryrun, delete_depth=delete_depth, item_aggregations=item_aggregations)
                 has_children = True
 
     if delete_depth is not None and delete_depth != depth:
+        return
+
+    if keep_collections:
         return
     
     # If lowest only and not has children, or not lowest only.
@@ -71,25 +86,28 @@ DEPTHS_EXPLAINED = [
 @click.command()
 @click.argument('collection')
 @click.argument('parent', required=False)
-@click.option('--items_only','items_only',is_flag=True,
-              help='Delete only items from a given collection')
+@click.option('--keep_collections','keep_collections',is_flag=True,
+              help='Keep collections')
+@click.option('--item_aggregations','item_aggregations',is_flag=True,
+              help='Delete aggregated items')
 @click.option('--top_only','top_only',is_flag=True,
               help='Delete the specified collection only')
 @click.option('--lowest_only','lowest_only',is_flag=True,
               help='Delete the lowest level collections (with no children)')
-@click.option('-r','real_run',is_flag=True,
+@click.option('-r','realrun',is_flag=True,
               help='Actually delete content')
 @click.option('--delete_depth','delete_depth', type=int,
               help='Delete collections at a certain depth in the nested collection set.')
 
 def main(collection: str, parent: str = None, 
-         items_only = False,
+         keep_collections = False,
+         item_aggregations = False,
          top_only = False, lowest_only=False, 
          realrun=False, delete_depth=None):
 
     dryrun = not realrun
 
-    if parent and not lowest_only and not items_only:
+    if parent and not lowest_only and keep_collections:
         parent_data = client.get(f'{STAC_API}/collections/{parent}').json()
         # Remove collection link from parent
         new_links = []
@@ -108,7 +126,7 @@ def main(collection: str, parent: str = None,
 
     # Generate warnings
     if not dryrun:
-        if items_only:
+        if keep_collections:
             print(f'Are you sure you want to remove all items from the {collection} collection?')
         elif top_only:
             print(f'Are you sure you want to remove the {collection} collection?')
@@ -124,12 +142,10 @@ def main(collection: str, parent: str = None,
         if ask != 'Y':
             return
         
-    if items_only:
-        remove_items(f'{STAC_API}/collections/{collection}/items', dryrun=dryrun)
-
     recursive_removal(f'{STAC_API}/collections/{collection}', 
-                      1, top_only=top_only, lowest_only=lowest_only, 
-                      dryrun=dryrun, delete_depth=delete_depth)
+                    1, top_only=top_only, lowest_only=lowest_only, 
+                    keep_collections=keep_collections,
+                    dryrun=dryrun, delete_depth=delete_depth, item_aggregations=item_aggregations)
 
 
 if __name__ == '__main__':

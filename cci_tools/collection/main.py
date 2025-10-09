@@ -5,7 +5,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import json
 import copy
 import requests
-from cci_tools.utils import (
+from cci_tools.collection.utils import (
     client, 
     auth, 
     STAC_API,
@@ -47,7 +47,8 @@ def add_drs_collection(
         drs_reference: dict,  
         suffix: str = None,
         overwrite: bool = False, 
-        dryrun: bool = False):
+        dryrun: bool = False,
+        uuid: str = None):
     """
     Add a DRS collection to a parent MOLES UUID-based collection
 
@@ -119,6 +120,12 @@ def add_drs_collection(
         )
     )
 
+    drs_stac['links'].append({
+      "rel": "ceda_catalogue",
+      "type": "text/html",
+      "href": f"https://catalogue.ceda.ac.uk/uuid/{uuid or parent['id']}"
+    },)
+
     drs_stac['links'] = remove_duplicate_links(drs_stac['links'])
 
     parent['links'].append({
@@ -126,6 +133,18 @@ def add_drs_collection(
         "type": "application/json",
         "href": f"{STAC_API}/collections/{id.lower()}"
     })
+    drs_stac['providers'] = [
+        {
+            'roles': ["host"],
+            'name': 'Centre for Environmental Data Analysis (CEDA)',
+            'url': 'https://catalogue.ceda.ac.uk'
+        },
+        {
+            'roles':["host"],
+            'name': "ESA Open Data Poral (ODP)",
+            'url': 'https://climate.esa.int/data'
+        }
+    ]
 
     if not dryrun:
 
@@ -265,7 +284,9 @@ def add_uuid_collection(
 
                 # Agg - id, description_url
                 try:
-                    moles_stac = add_drs_collection(drs, moles_stac, suffix=suffix, overwrite=overwrite)
+                    moles_stac = add_drs_collection(drs, moles_stac, 
+                                                    suffix=suffix, overwrite=overwrite,
+                                                    uuid=uuid)
                 except Exception as err:
                     raise err
 

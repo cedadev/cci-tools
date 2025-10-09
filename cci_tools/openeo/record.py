@@ -1,19 +1,13 @@
 #!/usr/bin/env python
-__author__    = "Diane Knappett"
-__contact__   = "diane.knappett@stfc.ac.uk"
+__author__    = "Daniel Westwood"
+__contact__   = "daniel.westwood@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 """
-This script performs an elasticsearch query for the directory defined in variable cci_dir 
-and then converts the opensearch record output to STAC format.
-
-Currently run from the command line using:
-python create_cci_stac_record.py cci_dir
-
-e.g. python create_cci_stac_record.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf /gws/nopw/j04/esacci_portal/stac/stac_records
-"""
+Create OpenEO records - involves combining multiple asset 'bands'
+into the same item."""
 from elasticsearch import Elasticsearch
-from datetime import datetime
+from datetime import datetime, timedelta
 import elasticsearch.helpers
 import json 
 import requests
@@ -21,6 +15,8 @@ import os
 import click
 import pdb
 import rasterio
+import re
+from dateutil.relativedelta import relativedelta
 
 def get_query(directory):
     query = {
@@ -124,8 +120,75 @@ def extract_opensearch(es_all_dict:dict):
     
     return stac_info, properties
 
-def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None):
+def end_of_month(dt):
+    import calendar
+    last_day = calendar.monthrange(dt.year, dt.month)[1]
+    return dt.replace(day=last_day)
+
+def extract_times_from_file(geotiff_file, interval):
+
+    filename = geotiff_file.split('/')[-1]
+
+    ymd_two    = re.search("([0-9]{2}[0-9]{2}[0-9]{4})_([0-9]{2}[0-9]{2}[0-9]{4})",filename)
+    yyyymmdd   = re.search("([0-9]{2}[0-9]{2}[0-9]{4})",filename)
+    yyyy       = re.search("(?<=[^a-zA-Z0-9])([0-9]{4})(?=[^a-zA-Z0-9])",filename)
+    yyyy_yyyy  = re.search("([0-9]{4})-([0-9]{4})",filename)
+    resolution = re.search("(?<=[^a-zA-Z0-9])(P[0-9]{1,2}Y)(?=[^a-zA-Z0-9])", filename)
+    y1 = None
+    end_datetime = None
+
+    resolutions = {'Y':'years','M':'months','D':'days'}
+
+    if ymd_two is not None:
+        start_datetime = datetime.strptime(
+            ymd_two.group().split('_')[0],"%Y%m%d"
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+        end_datetime = datetime.strptime(
+            ymd_two.group().split('_')[1],"%Y%m%d"
+        ).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif yyyymmdd is not None:
+        dt_object = datetime.strptime(yyyymmdd.group(),"%Y%m%d")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif yyyy_yyyy is not None:
+        y0, y1 = yyyy_yyyy.group().split('-')
+        dt_object = datetime.strptime(y0,"%Y")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif yyyy is not None:
+        dt_object = datetime.strptime(yyyy.group(),"%Y")
+        start_datetime = dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        return None,None
+    
+    if end_datetime is not None:
+        pass
+    elif interval == 'month':
+        end_datetime = end_of_month(dt_object).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif y1 is not None:
+        fdt_object = datetime.strptime(y1,"%Y")
+        end_datetime = (fdt_object + relativedelta(years=1) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    elif resolution is not None:
+        # P1Y example
+        r = resolution.group()
+        end_datetime = (dt_object + relativedelta(
+            **{resolutions[r[-1]]:int(r[1:-1])}
+        ) - relativedelta(seconds=1)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    else:
+        # Day
+        end_datetime = dt_object.strftime("%Y-%m-%d") + "T23:59:59Z"
+
+    print(filename, start_datetime, end_datetime)
+    
+    return start_datetime, end_datetime
+
+def read_geotiff(
+        geotiff_file:str, 
+        start_time: str = None, 
+        end_time: str = None, 
+        assume_global: bool = False,
+        interval: str = None):
     # Read in releavent info from GeoTIFF file itself
+
+    bbox_w = None
     
     # Values to feed into proj:transform, proj:epsg, and proj:shape
     with rasterio.open(geotiff_file) as src:
@@ -139,19 +202,53 @@ def read_geotiff(geotiff_file:str, start_time: str = None, end_time: str = None)
             dt_object=datetime.strptime(end_dt,"%Y%m%dT%H%M%SZ")
             end_datetime=dt_object.strftime("%Y-%m-%dT%H:%M:%SZ")
         except Exception as e:
-            print(f"An error occured '{e}'")
+            start_datetime, end_datetime = extract_times_from_file(geotiff_file, interval)
+
+        if start_datetime is None:
+            print(" > Insufficient Temporal Information")
             return None, None
 
-        version   = metadata.get('product_version','Unknown')
+        version   = metadata.get('product_version',None)
+        if not version:
+            try:
+                version = re.search("(fv[0-9]{1}.[0-9]{1})",geotiff_file).group()
+            except:
+                version = 'Unknown'
         platforms = metadata.get('platform','Unknown')
         drs = None
+        try:
+            bbox_w = float(metadata['geospatial_lon_min']) # west
+            bbox_n = float(metadata['geospatial_lat_max']) # north
+            bbox_e = float(metadata['geospatial_lon_max']) # east
+            bbox_s = float(metadata['geospatial_lat_min']) # south
+            bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
+        except:
 
-        bbox_w = float(metadata['geospatial_lon_min']) # west
-        bbox_n = float(metadata['geospatial_lat_max']) # north
-        bbox_e = float(metadata['geospatial_lon_max']) # east
-        bbox_s = float(metadata['geospatial_lat_min']) # south
+            try:
+                import xarray as xr
+                ds = xr.open_dataset(geotiff_file,engine='rasterio')
+                bbox_w = float(ds.x.min())
+                bbox_e = float(ds.x.max())
+                bbox_n = float(ds.y.max())
+                bbox_s = float(ds.y.min())
+            except:
+                assert 1==2
+                # Greenland specific
+                bbox_w = -80
+                bbox_e = -10
+                bbox_n = 90
+                bbox_s = 60
+
+            if assume_global:
+                bbox_w = -180
+                bbox_n = 90
+                bbox_e = 180
+                bbox_s = -90
+            elif bbox_w is None:
+                print(" > Insufficient Spatial Information")
+                return None, None
+            
         bbox = [bbox_w, bbox_s, bbox_e, bbox_n]
-
         geo_type = 'Polygon'
         coordinates = [[bbox_w, bbox_s], [bbox_e, bbox_s], [bbox_e, bbox_n], [bbox_w, bbox_n], [bbox_w, bbox_s]]
         format = 'GeoTiff'
@@ -185,7 +282,9 @@ def process_record(
         DRS: str = '',
         splitter: dict = None,
         start_time: str = None,
-        end_time: str = None
+        end_time: str = None,
+        assume_global: bool = False,
+        interval: str = None,
     )->tuple:
 
     # Mapping to split files within the same final Item.
@@ -207,7 +306,7 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
-    if file_ext=='.nc':
+    if file_ext=='.nc' or file_ext=='.json':
         # === NetCDF ===
         # All information can be extracted from OpenSearch record
 
@@ -221,7 +320,12 @@ def process_record(
         # === GeoTIFF ===
         # Information will be extracted from the OpenSearch record and the GeoTIFF file itself
 
-        stac_info, properties = read_geotiff(location+"/"+fname, start_time=start_time, end_time=end_time)
+        stac_info, properties = read_geotiff(
+            location+"/"+fname, 
+            start_time=start_time, 
+            end_time=end_time, 
+            assume_global=assume_global,
+            interval=interval)
 
         if not isinstance(stac_info, dict):
             print(f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}")
@@ -229,7 +333,7 @@ def process_record(
 
     else:
         print("Error: File format not recognised!")
-        return
+        return None, None
     
     exts = [
         "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
@@ -239,17 +343,23 @@ def process_record(
     if suffix == '':
         eo_bands = stac_info['format']
     else:
-        eo_bands = 'derived'
         exts.append("https://stac-extensions.github.io/eo/v1.1.0/schema.json")
         # Temporary to get banding properly
+        # Split applied to file_id
+        if isinstance(splitter,str):
+            eo_bands = splitter
+        else:
+            eo_bands = None
+            for split, mapping in splitter.items():
+                if split in file_id:
+                    file_id = file_id.replace(split, mapping[0])
+                    eo_bands = mapping[1] # Asset label.
+            if eo_bands is None:
+                print(file_id)
+                x=input('No splitter? ')
+                
 
-    drs = stac_info['drs'] or DRS
-
-    # Split applied to file_id
-    for split, mapping in splitter.items():
-        if split in file_id:
-            file_id = file_id.replace(split, mapping[0])
-            eo_bands += mapping[1] # Asset label.
+    drs = stac_info.get('drs',None) or DRS or f'{uuid}-main'
 
     # Create a dictionary of the required STAC output
     stac_dict = {
@@ -257,7 +367,7 @@ def process_record(
         "stac_version": "1.1.0",
         "stac_extensions": exts,
         "id": file_id + suffix,
-        "collection": drs + suffix,
+        "collection": (drs + suffix).lower(),
         "geometry": {
             "type": stac_info["geo_type"],
             "coordinates": [stac_info["coordinates"]]
@@ -271,24 +381,24 @@ def process_record(
             "version": stac_info["version"],
             "aggregation": False,
             "platforms": stac_info["platforms"],
-            "collections":[ecv, uuid, stac_info["drs"]],
+            "collections":[ecv, uuid, drs],
             **properties
         },
         "links": [
             {
             "rel": "self",
             "type": "application/geo+json",
-            "href": f"{STAC_API}/collections/{drs + suffix}/items/{file_id + suffix}"
+            "href": f"{STAC_API}/collections/{(drs + suffix).lower()}/items/{file_id + suffix}"
             },
             {
             "rel": "parent",
             "type": "application/json",
-            "href": f"{STAC_API}/collections/{drs}" + suffix
+            "href": f"{STAC_API}/collections/{(drs + suffix).lower()}"
             },
             {
             "rel": "collection",
             "type": "application/json",
-            "href": f"{STAC_API}/collections/{drs}" + suffix
+            "href": f"{STAC_API}/collections/{(drs + suffix).lower()}"
             },
             {
             "rel": "root",
@@ -336,8 +446,13 @@ def combine_records(recordA, recordB):
               help='Manually specify %Y%m%dT%H%M%SZ format start_time') # "%Y%m%dT%H%M%SZ"
 @click.option('--end_time',   'end_time', required=False,
               help='Manually specify %Y%m%dT%H%M%SZ format end_time')
+@click.option('--interval',   'interval', required=False,
+              help='Interval for where start_time is defined by the filename')
+@click.option('--global',   'assume_global', required=False, is_flag=True,
+              help='Assume global coverage where other data is not present')
 
-def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None):
+def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_time=None,
+         assume_global=False, interval=None):
     '''
     Reads in OpenSearch records for CCI NetCDF and geotiff data.
 
@@ -347,6 +462,7 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
     '''
 
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
+    splitter={}
 
     STAC_API = 'https://api.stac.164.30.69.113.nip.io'
     suffix = '.openeo'
@@ -360,10 +476,6 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                         headers={'x-api-key':API_KEY}
                         )
     
-    splitter = {
-        'AGB_SD-MERGED':["AGB-MERGED",'_SD']
-    }
-
     drs = output_drs
 
     if os.path.isfile(cci_dirs):
@@ -378,8 +490,11 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
         if len(cfg) > 1:
             drs = cfg[1]
         if len(cfg) > 2:
-            with open(cfg[2]) as f:
-                splitter = json.load(f)
+            if os.path.isfile(cfg[2]):
+                with open(cfg[2]) as f:
+                    splitter = json.load(f)
+            else:
+                splitter=cfg[2]
 
         print(f"Input CCI directory: {cci_dir}")
         print(f"Output STAC record directory: {output_dir}")
@@ -402,6 +517,9 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                 if exclusion in record['_source']['info']['name']:
                     print('Skipping due to exclusion')
                     continue
+                elif '.tif' not in record['_source']['info']['name']:
+                    print('Skipping non geotiff')
+                    continue
 
 
                 # Process OpenSearch record
@@ -412,7 +530,9 @@ def main(cci_dirs, output_dir, output_drs, exclusion=None, start_time=None, end_
                     DRS=drs, 
                     splitter=splitter,
                     start_time=start_time,
-                    end_time=end_time)
+                    end_time=end_time,
+                    assume_global=assume_global,
+                    interval=interval)
 
                 if isinstance(stac_dict, dict) == False:
                     print(f"Unable to create STAC record.")

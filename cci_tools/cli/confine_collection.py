@@ -2,7 +2,7 @@ __author__    = "Daniel Westwood"
 __contact__   = "daniel.westwood@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
-from cci_tools.collection.utils import client, auth, STAC_API
+from cci_tools.core.utils import client, auth, STAC_API, es_client
 import click
 import json
 from datetime import datetime
@@ -22,19 +22,12 @@ def confine_by_items(
         start_datetime: str, 
         end_datetime: str, 
         bbox: list,
-        api_key: str = None,
-        eshost: str = None
     ):
     # Define elasticsearch client
     # Get collection 10 items at a time
     # Continue checking each item using confine components
 
-    esclient = Elasticsearch(
-        hosts = [eshost],
-        api_key=api_key
-    )
-
-    response=esclient.search(index=f'items_{collection_name}', query={"match_all": {}},sort=[{"id": {"order": "asc"}}], size=10)
+    response=es_client.search(index=f'items_{collection_name}', query={"match_all": {}},sort=[{"id": {"order": "asc"}}], size=10)
 
     is_last = False
     while len(response['hits']['hits']) == 10 or not is_last:
@@ -62,7 +55,7 @@ def confine_by_items(
                 extent, start_datetime, end_datetime, bbox)
 
         searchAfter = response['hits']['hits'][-1]["sort"]
-        response = esclient.search(index=f'items_{collection_name}', query={"match_all": {}},sort=[{"id": {"order": "asc"}}], size=10, search_after=searchAfter)
+        response = es_client.search(index=f'items_{collection_name}', query={"match_all": {}},sort=[{"id": {"order": "asc"}}], size=10, search_after=searchAfter)
 
         if len(response["hits"]["hits"]) == 0:
             is_last=True
@@ -96,15 +89,12 @@ def confine_collection(
         start_datetime: str, 
         end_datetime: str, 
         bbox: list, 
-        child_based: bool = False,
-        api_key: str = None,
-        eshost: str = None):
+        child_based: bool = False):
 
     if not child_based:
         start_datetime, end_datetime, bbox = confine_by_items(
             collection_data['id'],
-            start_datetime, end_datetime, bbox,
-            api_key=api_key, eshost=eshost
+            start_datetime, end_datetime, bbox
         )
 
     for link in collection_data.get('links',[]):
@@ -127,12 +117,6 @@ def confine_collection(
 
 def main(collection: str, child_based=False):
 
-    api_key = os.environ.get("ES_API_KEY")
-    if not api_key:
-        print('Warning: API Key not loaded, please set with "export ES_API_KEY=..."')
-
-    eshost = os.environ.get("ES_HOST", 'https://elasticsearch.164.30.69.113.nip.io')
-
     collection=collection.lower()
     print(collection)
 
@@ -148,8 +132,7 @@ def main(collection: str, child_based=False):
 
     start_datetime, end_datetime, bbox = confine_collection(
         coll_data, start_datetime, end_datetime, bbox, 
-        child_based=child_based, api_key=api_key,
-        eshost=eshost)# Recursive function to find items and sub collections
+        child_based=child_based) # Recursive function to find items and sub collections
 
     print(start_datetime, end_datetime, bbox)
     if input('Apply changes? (Y/N) ') != 'Y':

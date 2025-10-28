@@ -5,13 +5,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import json
 import os, sys
 from elasticsearch import Elasticsearch
-
-ES_API_KEY=os.environ.get("ES_API_KEY") or None
-
-cli = Elasticsearch(
-    hosts=['https://elasticsearch.ceda.ac.uk'],
-    headers={'x-api-key':ES_API_KEY}
-)
+from cci_tools.core.utils import es_client
 
 if len(sys.argv) < 4:
     raise ValueError(
@@ -53,19 +47,19 @@ def update_opensearch(filelist, format, location):
         filename = filepath.split('/')[-1]
         path = filepath.replace(filename,'')
         try:
-            refs = cli.search(
+            refs = es_client.search(
                 index='opensearch-files',
                 query=path_based_query(path, filename)
             )['hits']['hits'][0]
         except Exception as _:
-            refs = cli.search(
+            refs = es_client.search(
                 index='opensearch-files',
                 query=path_based_query(f'{path}/',filename)
             )['hits']['hits'][0]
 
         refs['_source']['info'][f'{format}_location'] = location
 
-        cli.update(
+        es_client.update(
             index='opensearch-files',
             id=refs['_id'],
             body={'doc':refs['_source'],'doc_as_upsert':True}

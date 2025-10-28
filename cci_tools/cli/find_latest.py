@@ -5,15 +5,14 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 """
 This script walks the directory structure to find the latest versions
-of cci data and then creates stac records for it
+of cci data and then outputs a list of those files to then be used in creating STAC records.
 
-e.g. python cci_tools/create_cci_stac_records/run_latest_cci_versions.py /neodc/esacci/aerosol/data
+e.g. find_latest /neodc/esacci/aerosol/data
 """
 import click
 import os
 import re
 from packaging.version import Version
-import create_cci_stac_records
 
 def find_latest_versions(root_path):
     latest_versions = {}
@@ -53,13 +52,13 @@ def find_latest_versions(root_path):
 # Parse command line arguments using click
 @click.command()
 @click.argument('root_directory')
-@click.option('--owrite_list', is_flag=True, help='Overwrite existing latest version list.')
+@click.option('-o','output')
 
-def main(root_directory,owrite_list):
+def main(root_directory,output):
     
-    run_latest(root_directory,owrite_list)
+    run_latest(root_directory,output)
 
-def run_latest(root_directory,owrite_list):
+def run_latest(root_directory,output):
 
     if root_directory.isnumeric():
         path_file='/home/users/dknappett/tools/cci-tools/cci_project_paths.txt'
@@ -70,44 +69,24 @@ def run_latest(root_directory,owrite_list):
     dir_split=root_directory.split('/')
     project=dir_split[3]
 
-    #output_dir=f'/gws/nopw/j04/esacci_portal/stac/stac_records/test/{project}'
-    output_dir=f'/gws/nopw/j04/esacci_portal/stac/stac_records/lotus_jobs/{project}'
+    output_dir = '/'.join(output.split('/')[:-1])
     if not os.path.exists(output_dir):
         try:
-            os.mkdir(output_dir)
+            os.makedirs(output_dir)
             print(f"Created directory '{output_dir}' successfully")
         except PermissionError:
             print(f"Permission denied: Unable to make '{output_dir}'")
         except Exception as e:
             print(f"An error occured '{e}'")
 
-    output_file=f"{output_dir}/latest_version_list.txt"
+    if os.path.isfile(output):
+        raise ValueError(f'Output file already exists: {output}')
 
-    if (not os.path.isfile(output_file) or owrite_list):
-        # Example usage
-        # root_directory = '/neodc/esacci/aerosol/data'
-        latest_dirs = find_latest_versions(root_directory)
-        values = [latest_dirs[key] for key in latest_dirs]
-
-        with open(output_file, "w") as file:
-            for parent, latest in latest_dirs.items():
-                    file.write(latest + "\n")
-                    print(f"{parent} → {latest}")
-        print("")    
-        print(f"The latest version of CCI directories for the {project} project have been written to the following file:")
-        print(output_file)
-        print("")
-
-    else:
-        print(f"Opening existing output file:")
-        print(output_file)
-        with open(output_file, 'r') as file:
-            values = [r.strip() for r in file.readlines()]
-            print(values)
+    latest_dirs = find_latest_versions(root_directory)
+    values = [latest_dirs[key] for key in latest_dirs]
         
-    # Loop over creation of STAC records
-    for file_path in values:
-        create_cci_stac_records.create_stac(file_path, output_dir, None)
+    with open(output,'w') as f:
+        f.write('\n'.join(values))
 
 if __name__ == "__main__":
     main()

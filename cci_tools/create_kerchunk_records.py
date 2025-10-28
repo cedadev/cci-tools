@@ -11,8 +11,8 @@ from datetime import datetime
 import glob
 import copy
 
-from cci_tools.collection.utils import STAC_API, client, auth, dryrun
-from cci_tools.openeo.record import process_record
+from cci_tools.core.utils import STAC_API, client, auth, dryrun
+from cci_tools.stac.openeo import process_record
 
 # Setup client and query elasticsearch
 with open('API_CREDENTIALS') as f:

@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 # Update an existing collection
 
-from cci_tools.collection.utils import client, auth, STAC_API
+from cci_tools.core.utils import client, auth, STAC_API
 from cci_tools.collection.main import remove_duplicate_links
 import click
 import json

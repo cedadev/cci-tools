@@ -5,7 +5,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import json
 import copy
 import requests
-from cci_tools.collection.utils import (
+from cci_tools.core.utils import (
     client, 
     auth, 
     STAC_API,

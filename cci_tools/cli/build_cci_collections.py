@@ -19,7 +19,7 @@ from httpx_auth import OAuth2ClientCredentials
 from elasticsearch import Elasticsearch
 
 from cci_tools.collection.main import create_project_collection, remove_duplicate_links
-from cci_tools.collection.utils import client, auth, STAC_API
+from cci_tools.core.utils import client, auth, STAC_API
 
 import os
 import click
@@ -31,10 +31,6 @@ def main(dryrun):
 
     with open('config/cci_ecv_config.json') as f:
         config = json.load(f)
-
-    api_key = os.environ.get("ES_API_KEY")
-    if not api_key:
-        print('Warning: API Key not loaded, please set with "export ES_API_KEY=..."')
 
 
     exists = False
@@ -56,7 +52,6 @@ def main(dryrun):
             project,
             cci,
             project_reference=config,
-            api_key=api_key,
             dryrun=dryrun
         )
 

@@ -22,12 +22,49 @@ auth = OAuth2ClientCredentials(
     client_secret=creds["secret"]
 )
 
+def es_connection_kwargs(hosts, api_key, **kwargs):
+    """
+    Determine Elasticsearch connection kwargs
+    """
+    if isinstance(hosts, list):
+        hosts = hosts[0]
+
+    if hosts == 'https://elasticsearch.ceda.ac.uk':
+        return {
+            'hosts': [hosts],
+            'headers':{'x-api-key':api_key},
+            **kwargs
+        }
+    else:
+        return {
+            'hosts':[hosts],
+            'api_key':api_key,
+            **kwargs
+        }
+
 STAC_API = 'https://api.stac.164.30.69.113.nip.io'
 
 client = httpx.Client(
     verify=False,
     timeout=180,
 )
+
+ES_API_KEY = open_json('API_CREDENTIALS')['secret']
+ES_HOST = 'https://elasticsearch.164.30.69.113.nip.io'
+
+es_client = Elasticsearch(
+    **es_connection_kwargs(
+        hosts=ES_HOST,
+        api_key=ES_API_KEY
+    )
+)
+
+ALLOWED_OPENSEARCH_EXTS = [
+    '.cpg', '.csv', '.dat', '.dbf', '.dsr', '.geojson',
+    '.gz' , '.jpg', '.kml', '.lyr', '.nc' , '.png', 
+    '.prj', '.qpf', '.qml', '.qpj', '.sbn', '.sbx',
+    '.shp', '.shx', '.tar', '.xml', '.zip'
+]
 
 COLLECTION_TEMPLATE = {
   "id": "test",

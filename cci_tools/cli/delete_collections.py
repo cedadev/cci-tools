@@ -5,7 +5,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import click
 from time import sleep
 
-from cci_tools.collection.utils import STAC_API, client, auth, dryrun
+from cci_tools.core.utils import STAC_API, client, auth
 
 def remove_items(item_url, dryrun=True, item_aggregations=False):
     """

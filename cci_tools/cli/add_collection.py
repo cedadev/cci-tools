@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 # Click-based script for interfacing with the cci_tools library
 # to create new collections in the nested cci structure.
-from cci_tools.collection.utils import client, auth, STAC_API
+from cci_tools.core.utils import client, auth, STAC_API
 from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,

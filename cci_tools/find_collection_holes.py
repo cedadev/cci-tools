@@ -5,7 +5,7 @@ import xarray as xr
 from elasticsearch import Elasticsearch
 from datetime import datetime
 
-from cci_tools.collection.utils import STAC_API, client, auth, dryrun
+from cci_tools.core.utils import STAC_API, client, auth, dryrun
 
 def recursive_child_search(collection, depth):
     resp = client.get(f'{STAC_API}/collections/{collection}')

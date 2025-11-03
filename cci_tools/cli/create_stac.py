@@ -11,7 +11,7 @@ from cci_tools.stac.create_record import (
 
 # Parse command line arguments using click
 @click.command()
-@click.argument('cci_dirs', type=click.Path(exists=True))
+@click.argument('cci_dirs')
 @click.argument('output_dir', type=click.Path(exists=True))
 @click.option('--output_drs', 'output_drs', required=False,
               help='DRS to apply to all items for the CCI dirs specified')
@@ -92,8 +92,11 @@ def create_stac(
         is_last = False
 
         if os.path.isfile(cci_dir):
-            with open(cci_dir) as f:
-                fileset = [r.strip() for r in f.readlines()]
+            if cci_dir.endswith('.txt'):
+                with open(cci_dir) as f:
+                    fileset = [r.strip() for r in f.readlines()]
+            else:
+                fileset = [cci_dir]
 
             for file in fileset:
                 body = get_file_query(file)

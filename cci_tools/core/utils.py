@@ -169,12 +169,13 @@ def count_items(item_url, item_aggregations=False, quick_count=True):
                 continue
             
             fi_count += 1
+            print(fi_count, end='\r') # Running count
             found_items = True
         if quick_count and fi_count > 1:
             break
     return fi_count
 
-def recursive_find(collection, collection_summary, item_aggregations=False, depth=0):
+def recursive_find(collection, collection_summary, item_aggregations=False, depth=0, quick_count=True):
     """
     Remove collections recursively so no collections are left orphaned.
     
@@ -189,17 +190,19 @@ def recursive_find(collection, collection_summary, item_aggregations=False, dept
     
     coll_data = resp.json()
 
-    item_count = count_items(f'{collection}/items', item_aggregations=item_aggregations)
+    print(f"{collection.split('/')[-1]}")
 
-    print(f"{collection.split('/')[-1]} {item_count}")
+    item_count = count_items(f'{collection}/items', item_aggregations=item_aggregations, quick_count=quick_count)
+
+    print(f"{item_count}")
 
     child_count = 0
     missing = 0
     for link in coll_data['links']:
         if link['rel'] == 'child':
-            if '-main' in link['href']:
-                continue
-            exists,collection_summary  = recursive_find(link['href'], collection_summary,item_aggregations=item_aggregations, depth=depth+1)
+            #if '-main' in link['href']:
+            #    continue
+            exists,collection_summary  = recursive_find(link['href'], collection_summary,item_aggregations=item_aggregations, depth=depth+1, quick_count=quick_count)
             if exists:
                 child_count += 1
             else:

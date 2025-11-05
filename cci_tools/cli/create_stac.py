@@ -92,8 +92,11 @@ def create_stac(
         is_last = False
 
         if os.path.isfile(cci_dir):
-            with open(cci_dir) as f:
-                fileset = [r.strip() for r in f.readlines()]
+            if cci_dir.endswith('.txt'):
+                with open(cci_dir) as f:
+                    fileset = [r.strip() for r in f.readlines()]
+            else:
+                fileset = [cci_dir]
 
             for file in fileset:
                 body = get_file_query(file)

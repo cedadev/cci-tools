@@ -11,7 +11,7 @@ from cci_tools.stac.create_record import (
 
 # Parse command line arguments using click
 @click.command()
-@click.argument('cci_dirs', type=click.Path(exists=True))
+@click.argument('cci_dirs')
 @click.argument('output_dir', type=click.Path(exists=True))
 @click.option('--output_drs', 'output_drs', required=False,
               help='DRS to apply to all items for the CCI dirs specified')

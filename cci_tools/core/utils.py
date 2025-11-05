@@ -147,3 +147,69 @@ def es_collection(uuid, api_key):
         }
         }
     )['hits']['hits'][0]
+
+def count_items(item_url, item_aggregations=False, quick_count=True):
+    """
+    Remove all items for a specific collection."""
+
+    item_data = {'features':[None]}
+    found_items = True
+    fi_count = 0
+    while found_items:
+
+        found_items = False
+        resp = client.get(item_url)
+        if resp.status_code == 404:
+            return 0
+        item_data = resp.json()
+
+        for item in item_data['features']:
+            if not item_aggregations and item["properties"].get('aggregation'):
+                # If not counting aggregations, skip aggregated items
+                continue
+            
+            fi_count += 1
+            print(fi_count, end='\r') # Running count
+            found_items = True
+        if quick_count and fi_count > 1:
+            break
+    return fi_count
+
+def recursive_find(collection, collection_summary, item_aggregations=False, depth=0, quick_count=True):
+    """
+    Remove collections recursively so no collections are left orphaned.
+    
+    This is less of an issue with collections vs items, but still with the large
+    range of CCI collections this is important as orphaned collections may easily
+    be 'lost'."""
+
+    resp = client.get(collection)
+
+    if resp.status_code == 404:
+        return False, collection_summary
+    
+    coll_data = resp.json()
+
+    print(f"{collection.split('/')[-1]}")
+
+    item_count = count_items(f'{collection}/items', item_aggregations=item_aggregations, quick_count=quick_count)
+
+    print(f"{item_count}")
+
+    child_count = 0
+    missing = 0
+    for link in coll_data['links']:
+        if link['rel'] == 'child':
+            #if '-main' in link['href']:
+            #    continue
+            exists,collection_summary  = recursive_find(link['href'], collection_summary,item_aggregations=item_aggregations, depth=depth+1, quick_count=quick_count)
+            if exists:
+                child_count += 1
+            else:
+                missing += 1
+    if depth == 4:
+        collection_summary.append((collection.split("/")[-1],item_count))
+
+    if missing > 0:
+        print(f' > {collection.split("/")[-1]} Missing: {missing}')
+    return True, collection_summary

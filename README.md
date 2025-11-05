@@ -39,3 +39,11 @@ Create CCI STAC items, requires a CCI directory relating to a set of Opensearch 
 `post_items`
 
 Post created items to the STAC API. Requires the directory of saved STAC records.
+
+# OpenEO Datasets - Process for creating a dataset.
+
+OpenEO datasets are created using `cci_tools/create_openeo_collection.py` from a template file. This requires a DRS argument, a `uuid` parameter and a `formats` parameter to be supplied to the keywords. This will fill the new openeo dataset record with metadata from the moles and opensearch records from the uuid. DRS-level metadata is not yet fetched from any source.
+
+Once the collection file has been created it can be uploaded using `update_collections`, the new file name and `cci_openeo` as the parent collection.
+
+The collection has now been established and can be filled using the `create_items` command with associated CSV inputs that govern asset splitting etc. These items are created and uploaded separately using `post_items`.

@@ -3,13 +3,6 @@ __author__    = "Diane Knappett"
 __contact__   = "diane.knappett@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
-"""
-This script posts a single STAC record to the STAC catalogue:
-https://radiantearth.github.io/stac-browser/#/external/api.stac-master.rancher2.130.246.130.221.nip.io/collections/cci
-
-Usage: python post_cci_stac_record.py stac_record
-e.g. python post_cci_stac_record.py /gws/nopw/j04/esacci_portal/stac/stac_records/biomass/stac_ESACCI-BIOMASS-L4-AGB-MERGED-100m-2007-fv6.0-nc.json
-"""
 import json
 import httpx
 from httpx_auth import OAuth2ClientCredentials

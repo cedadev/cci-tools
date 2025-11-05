@@ -106,6 +106,65 @@ COLLECTION_TEMPLATE = {
   "summaries": None
 }
 
+def get_dir_query(directory):
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "prefix": {
+                            "info.directory": directory
+                        }
+                    },
+                    {
+                        "exists": {
+                            "field": "projects.opensearch"
+                        }
+                    }
+                ]
+            }
+        }, "sort": [{"info.directory": {"order": "asc"}}, {"info.name": {"order": "asc"}}], "size": 10
+    }
+    return query
+
+def get_file_query(file):
+    file = file.split('/')[-1]
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {
+                        "prefix": {
+                            "info.name": file
+                        }
+                    },
+                    {
+                        "exists": {
+                            "field": "projects.opensearch"
+                        }
+                    }
+                ]
+            }
+        }, "sort": [{"info.name": {"order": "asc"}}, {"info.directory": {"order": "asc"}}], "size": 10
+    }
+    return query
+
+def get_item_query(count_aggregations=True):
+
+    query = {"term": {
+      "properties.aggregation": {
+        "value": False
+      }
+    }}
+    if count_aggregations:
+        query = {"match_all": {}}
+
+    body = {
+        "query": query,
+        "size": 10
+    }
+    return body
+
 def get_opensearch_record(moles_id, drs_id):
 
     url = f"https://archive.opensearch.ceda.ac.uk/opensearch/request?parentIdentifier={moles_id}&drsId={drs_id}&httpAccept=application/geo%2Bjson&maximumRecords=20&startPage=1"
@@ -148,34 +207,27 @@ def es_collection(uuid, api_key):
         }
     )['hits']['hits'][0]
 
-def count_items(item_url, item_aggregations=False, quick_count=True):
+def count_items(collection, item_aggregations=False, quick_check=False):
     """
     Remove all items for a specific collection."""
 
-    item_data = {'features':[None]}
-    found_items = True
-    fi_count = 0
-    while found_items:
+    body = get_item_query(count_aggregations=item_aggregations)
+    response = es_client.search(index=f'items_{collection}', body=body)
+    items = response['hits']['hits']
 
-        found_items = False
-        resp = client.get(item_url)
-        if resp.status_code == 404:
-            return 0
-        item_data = resp.json()
+    if quick_check and len(items) > 0:
+        return True
+    
+    return response['hits']['total']['value']
 
-        for item in item_data['features']:
-            if not item_aggregations and item["properties"].get('aggregation'):
-                # If not counting aggregations, skip aggregated items
-                continue
-            
-            fi_count += 1
-            print(fi_count, end='\r') # Running count
-            found_items = True
-        if quick_count and fi_count > 1:
-            break
-    return fi_count
-
-def recursive_find(collection, collection_summary, item_aggregations=False, depth=0, quick_count=True):
+def recursive_find(
+        collection, 
+        collection_summary, 
+        item_aggregations=False,
+        depth=0,
+        current_depth=1,
+        quick_check=False
+    ):
     """
     Remove collections recursively so no collections are left orphaned.
     
@@ -190,24 +242,34 @@ def recursive_find(collection, collection_summary, item_aggregations=False, dept
     
     coll_data = resp.json()
 
-    print(f"{collection.split('/')[-1]}")
+    collection_name = collection.split('/')[-1]
 
-    item_count = count_items(f'{collection}/items', item_aggregations=item_aggregations, quick_count=quick_count)
+    try:
+        item_count = count_items(
+            collection_name, item_aggregations=item_aggregations, 
+            quick_check=quick_check)
+    except:
+        item_count = 'N/A'
 
-    print(f"{item_count}")
+    if item_count == 10000:
+        item_count = '>10000'
+
+    if depth == current_depth or depth == 0:
+        print(f"{collection.split('/')[-1]}: {item_count}")
 
     child_count = 0
     missing = 0
     for link in coll_data['links']:
         if link['rel'] == 'child':
-            #if '-main' in link['href']:
-            #    continue
-            exists,collection_summary  = recursive_find(link['href'], collection_summary,item_aggregations=item_aggregations, depth=depth+1, quick_count=quick_count)
+            exists,collection_summary  = recursive_find(link['href'], 
+                                                        collection_summary,item_aggregations=item_aggregations,
+                                                        depth=depth, current_depth=current_depth+1, 
+                                                        quick_check=quick_check)
             if exists:
                 child_count += 1
             else:
                 missing += 1
-    if depth == 4:
+    if current_depth == depth:
         collection_summary.append((collection.split("/")[-1],item_count))
 
     if missing > 0:

@@ -5,7 +5,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 import pdb
 import bdb
 
-from cci_tools.core.utils import STAC_API, auth, client, open_json
+from cci_tools.core.utils import STAC_API, auth, client, open_json, es_client, ES_HOST, ES_API_KEY
 
 def main():
 

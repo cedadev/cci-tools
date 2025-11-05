@@ -3,5 +3,8 @@ venv
 AUTH_CREDENTIALS
 API_CREDENTIALS
 stac_collections/gen
-openeo/records/
+openeo/records
+localfiles/
+uploads/
+config/
 tests/

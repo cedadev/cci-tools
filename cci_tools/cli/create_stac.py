@@ -2,10 +2,11 @@ import click
 import json
 import os
 
-from cci_tools.core.utils import es_client, client, auth, STAC_API
+from cci_tools.core.utils import (
+    es_client, client, auth, STAC_API,
+    get_file_query, get_dir_query
+)
 from cci_tools.stac.create_record import (
-    get_dir_query, 
-    get_file_query,
     handle_process_record
 )
 
@@ -100,7 +101,7 @@ def create_stac(
 
             for file in fileset:
                 body = get_file_query(file)
-                hits = client.search(index='opensearch-files', body=body)['hits']['hits']
+                hits = es_client.search(index='opensearch-files', body=body)['hits']['hits']
 
                 if len(hits) == 0:
                     print("")
@@ -126,7 +127,7 @@ def create_stac(
                     failed_list.append(f'{file}:incomplete')
         else:
             body = get_dir_query(cci_dir)
-            hits = client.search(index='opensearch-files', body=body)['hits']['hits']
+            hits = es_client.search(index='opensearch-files', body=body)['hits']['hits']
             if len(hits) == 0:
                 print("")
                 print(f"{cci_dir}: No OpenSearch hits found!")

@@ -3,15 +3,6 @@ __author__    = "Diane Knappett"
 __contact__   = "diane.knappett@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
-"""
-This script performs an elasticsearch query for the directory defined in variable cci_dir 
-and then converts the opensearch record output to STAC format.
-
-Currently run from the command line using:
-python create_cci_stac_record.py cci_dir
-
-e.g. python create_cci_stac_records.py /neodc/esacci/biomass/data/agb/maps/v6.0/netcdf /gws/nopw/j04/esacci_portal/stac/stac_records
-"""
 from elasticsearch import Elasticsearch
 from datetime import datetime
 import elasticsearch.helpers
@@ -23,30 +14,8 @@ import pdb
 import rasterio
 import re
 
-from cci_tools.readers.file import extract_times_from_file
 from cci_tools.readers.geotiff import read_geotiff
 from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API
-
-def get_query(directory):
-    query = {
-        "query": {
-            "bool": {
-                "must": [
-                    {
-                        "prefix": {
-                            "info.directory": directory
-                        }
-                    },
-                    {
-                        "exists": {
-                            "field": "projects.opensearch"
-                        }
-                    }
-                ]
-            }
-        }, "sort": [{"info.directory": {"order": "asc"}}, {"info.name": {"order": "asc"}}], "size": 10
-    }
-    return query
 
 def extract_id(es_all_dict:dict):
     """

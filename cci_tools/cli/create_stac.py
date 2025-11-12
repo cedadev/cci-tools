@@ -58,7 +58,7 @@ def create_stac(
     ):
     
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
-
+    splitter = None
     drs = output_drs
 
     if os.path.isfile(cci_dirs):

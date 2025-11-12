@@ -160,8 +160,8 @@ def get_item_query(count_aggregations=True):
         query = {"match_all": {}}
 
     body = {
-        "query": query,
-        "size": 10
+        "query": query #,
+        #"size": 10
     }
     return body
 
@@ -212,13 +212,13 @@ def count_items(collection, item_aggregations=False, quick_check=False):
     Remove all items for a specific collection."""
 
     body = get_item_query(count_aggregations=item_aggregations)
-    response = es_client.search(index=f'items_{collection}', body=body)
-    items = response['hits']['hits']
+    response = es_client.count(index=f'items_{collection}', body=body)
+    items = response['count']
 
     if quick_check and len(items) > 0:
         return True
-    
-    return response['hits']['total']['value']
+
+    return response['count']
 
 def recursive_find(
         collection, 
@@ -226,7 +226,8 @@ def recursive_find(
         item_aggregations=False,
         depth=0,
         current_depth=1,
-        quick_check=False
+        quick_check=False,
+        count_all=False
     ):
     """
     Remove collections recursively so no collections are left orphaned.
@@ -248,14 +249,8 @@ def recursive_find(
         item_count = count_items(
             collection_name, item_aggregations=item_aggregations, 
             quick_check=quick_check)
-    except:
-        item_count = 'N/A'
-
-    if item_count == 10000:
-        item_count = '>10000'
-
-    if depth == current_depth or depth == 0:
-        print(f"{collection.split('/')[-1]}: {item_count}")
+    except Exception as e:
+        raise e
 
     child_count = 0
     missing = 0
@@ -264,14 +259,22 @@ def recursive_find(
             exists,collection_summary  = recursive_find(link['href'], 
                                                         collection_summary,item_aggregations=item_aggregations,
                                                         depth=depth, current_depth=current_depth+1, 
-                                                        quick_check=quick_check)
+                                                        quick_check=quick_check, count_all=count_all)
             if exists:
                 child_count += 1
             else:
                 missing += 1
+
+            if count_all:
+                item_count += exists
+
     if current_depth == depth:
         collection_summary.append((collection.split("/")[-1],item_count))
 
     if missing > 0:
         print(f' > {collection.split("/")[-1]} Missing: {missing}')
-    return True, collection_summary
+
+    if depth == current_depth or depth == 0:
+        print(f"{collection.split('/')[-1]}: {item_count}")
+    
+    return item_count, collection_summary

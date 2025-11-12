@@ -167,6 +167,9 @@ def handle_process_record(
         print(f"{err}: Failed to create STAC record.")
         return False, 'Failed:'+str(err)
 
+    if stac_dict is None:
+        return False, None
+    
     # Create directory for each CCI ECV/Project
     ecv_dir=stac_dict["collection"]
     cci_stac_dir=f"{output_dir}/{ecv_dir}/"
@@ -203,6 +206,7 @@ def process_record(
         start_time: str = None,
         end_time: str = None,
         openeo: bool = False,
+        **kwargs
     )->tuple:
 
 

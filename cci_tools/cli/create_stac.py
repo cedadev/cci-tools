@@ -59,6 +59,7 @@ def create_stac(
     
     exclusion = exclusion or 'uf8awhjidaisdf8sd'
 
+    splitter = None
     drs = output_drs
 
     if os.path.isfile(cci_dirs):
@@ -133,10 +134,10 @@ def create_stac(
                 print(f"{cci_dir}: No OpenSearch hits found!")
                 continue
         
-            while len(response['hits']['hits']) == 10 or not is_last:
-                if len(response['hits']['hits']) != 10:
+            while len(hits) == 10 or not is_last:
+                if len(hits) != 10:
                     is_last = True
-                for record in response['hits']['hits']:
+                for record in hits:
                     success, status = handle_process_record(
                         record,
                         output_dir,
@@ -149,13 +150,13 @@ def create_stac(
                         **kwargs
                     )
                     if not success:
-                        failed_list.append(f'{file}:{status}')
+                        failed_list.append(f'{record['_source']['projects']['opensearch']['datasetId']}:{status}')
                     if not status:
-                        failed_list.append(f'{file}:incomplete')
+                        failed_list.append(f'{record['_source']['projects']['opensearch']['datasetId']}:incomplete')
 
-                searchAfter = response['hits']['hits'][-1]["sort"]
+                searchAfter = hits[-1]["sort"]
                 body['search_after'] = searchAfter
-                response = client.search(index='opensearch-files', body=body)
+                response = es_client.search(index='opensearch-files', body=body)
                 if len(response["hits"]["hits"]) == 0:
                     is_last=True
             

@@ -107,6 +107,7 @@ def create_stac(
                 if len(hits) == 0:
                     print("")
                     print(f"{file}: Not found in Opensearch")
+                    count_fail += 1
                     continue
                 
                 record = hits[0]
@@ -124,8 +125,12 @@ def create_stac(
 
                 if not success:
                     failed_list.append(f'{file}:{status}')
-                if not status:
+                    count_fail += 1
+                elif not status:
                     failed_list.append(f'{file}:incomplete')
+                    count_fail += 1
+                else:
+                    count_success += 1
         else:
             body = get_dir_query(cci_dir)
             hits = es_client.search(index='opensearch-files', body=body)['hits']['hits']
@@ -149,10 +154,15 @@ def create_stac(
                         halt=halt,
                         **kwargs
                     )
+                    file = record['_source']['info']['name']
                     if not success:
-                        failed_list.append(f'{record['_source']['projects']['opensearch']['datasetId']}:{status}')
-                    if not status:
-                        failed_list.append(f'{record['_source']['projects']['opensearch']['datasetId']}:incomplete')
+                        failed_list.append(f'{file}:{status}')
+                        count_fail += 1
+                    elif not status:
+                        failed_list.append(f'{file}:incomplete')
+                        count_fail += 1
+                    else:
+                        count_success += 1
 
                 searchAfter = hits[-1]["sort"]
                 body['search_after'] = searchAfter

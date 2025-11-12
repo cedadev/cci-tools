@@ -15,6 +15,7 @@ import rasterio
 import re
 
 from cci_tools.readers.geotiff import read_geotiff
+from cci_tools.readers.xarray import scrape_xarray
 from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API
 
 def extract_id(es_all_dict:dict):
@@ -200,20 +201,23 @@ def handle_process_record(
 
 def process_record(
         es_all_dict:dict, 
-        STAC_API:str, 
+        stac_api:str = STAC_API, 
         drs: str = '',
         splitter: dict = None,
         start_time: str = None,
         end_time: str = None,
         openeo: bool = False,
+        fmt_override: str = None,
+        collections: list = None,
+        interval: str = None,
         **kwargs
+
     )->tuple:
 
 
     incomplete = False
     # Extract filename, file id, and file extension
     fname, file_id, file_ext = extract_id(es_all_dict)
-    print(file_id)
 
     # Extract file path
     location = es_all_dict['info'].get('directory')
@@ -227,7 +231,11 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
-    if file_ext in ALLOWED_OPENSEARCH_EXTS:
+    if 'xarray' in fmt_override:
+        stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
+        properties = {}
+        
+    elif file_ext in ALLOWED_OPENSEARCH_EXTS:
         # Information can only be extracted from OpenSearch record
 
         stac_info, properties = extract_opensearch(es_all_dict)
@@ -249,7 +257,8 @@ def process_record(
 
         stac_info = read_geotiff(location+"/"+fname, 
                                  start_time=start_time, end_time=end_time, 
-                                 fill_incomplete=True, openeo=openeo)
+                                 fill_incomplete=True, openeo=openeo,
+                                 interval=interval)
         
         incomplete = stac_info['properties'].get('incomplete',False)
 
@@ -285,6 +294,14 @@ def process_record(
                     asset_id = mapping[1] # Asset label.
             if asset_id is None:
                 print('WARNING: No splitting identified for this item')
+        
+    remote_location = location
+    if 'https://' not in remote_location:
+        remote_location = 'https://dap.ceda.ac.uk' + remote_location
+
+    if uuid is not None:
+        properties["opensearch_url"] = f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
+        properties["esa_url"] = f"https://climate.esa.int/en/catalogue/{uuid}/",
 
     # Create a dictionary of the required STAC output
     stac_dict = {
@@ -308,8 +325,6 @@ def process_record(
             "aggregation": False,
             "platforms": stac_info["platforms"],
             "collections":[ecv, uuid, drs],
-            "opensearch_url":f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
-            "esa_url":f"https://climate.esa.int/en/catalogue/{uuid}/",
             **properties
         },
         "links": [
@@ -341,7 +356,7 @@ def process_record(
         ],
         "assets": {
             asset_id: {
-                "href": f"https://dap.ceda.ac.uk{location}/{fname}",
+                "href": f"{remote_location}/{fname}",
                 "roles": [
                     "data"
                 ]

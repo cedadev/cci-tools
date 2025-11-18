@@ -38,7 +38,7 @@ stac_shell = "cci_tools.shell:main"
 update_collection = "cci_tools.update_collection:main"
 
 # Create Openeo collection
-create_openeo = "cci_tools.create_openeo_collection:main"
+create_openeo = "cci_tools.cli.openeo_aggregation:main"
 
 # Create STAC/OpenEO records for cci
 create_items = "cci_tools.cli.create_stac:main"
@@ -57,3 +57,6 @@ geo2cog = "cci_tools.cli.geo2cog:main"
 
 # Count Items in a collection
 count_items = "cci_tools.cli.collection_item_count:main"
+
+# Migrate a collection
+migrate_collection = "cci_tools.cli.migrate_collection:main"

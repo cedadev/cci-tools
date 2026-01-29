@@ -6,7 +6,7 @@ authors = [
     {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
 ]
 readme = "README.md"
-requires-python = ">=3.10,<3.12"
+requires-python = ">=3.10,<3.13"
 dependencies = [
     "requests (>=2.32.4,<3.0.0)",
     "urllib3 (>=2.5,<3.0)",
@@ -16,10 +16,7 @@ dependencies = [
     "rasterio (>=1.4.3,<2.0.0)",
     "rio-cogeo (>=5.4.2,<6.0.0)",
     "elasticsearch (>=7,<9)",
-    "httpx-auth (>=0.23.1,<0.24.0)",
-    "openeo (>=0.43.0,<1)",
-    "openeo-pg-parser-networkx (>=2024.10.1,<2026)",
-    "openeo-processes-dask (>=2025.7.1,<2026)"
+    "httpx-auth (>=0.23.1,<0.24.0)"
 ]
 
 

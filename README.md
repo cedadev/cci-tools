@@ -46,8 +46,12 @@ Post created items to the STAC API. Requires the directory of saved STAC records
 
 # OpenEO Datasets - Process for creating a dataset.
 
-OpenEO datasets are created using `cci_tools/create_openeo_collection.py` from a template file. This requires a DRS argument, a `uuid` parameter and a `formats` parameter to be supplied to the keywords. This will fill the new openeo dataset record with metadata from the moles and opensearch records from the uuid. DRS-level metadata is not yet fetched from any source.
+OpenEO datasets are created using command `create_openeo`. This only requires an `endpoint` to be given, which can be the path to a kerchunk file or zarr store.
 
-Once the collection file has been created it can be uploaded using `update_collections`, the new file name and `cci_openeo` as the parent collection.
+Additional parameters that should be given:
+- `--did`: Dataset ID if not just the name of the kerchunk file.
+- `--uuid`: Moles UUID for this dataset.
+- `--ecv`: ECV/Project to add to the STAC metadata.
+- `-d`: Dryrun: Will output STAC collection/item to the local filesystem.
 
-The collection has now been established and can be filled using the `create_items` command with associated CSV inputs that govern asset splitting etc. These items are created and uploaded separately using `post_items`.
+Note: This creates a collection container AND a STAC item, so the Kerchunk file/zarr store is an asset of an item which forms part of the OpenEO collection (with 1 item)

@@ -26,7 +26,11 @@ Delete collections, items or nested collections from the STAC index, including r
 
 `update_collection`
 
-Upload/replace a collection in the STAC index from a local file. This includes merging the sets of `links` so as not to break parent-child relations.
+Upload/replace a collection in the STAC index from a local file. This includes merging the sets of `links` so as not to break parent-child relations:
+- Determine where the new collection fits into the existing STAC collection set (i.e what is the parent? Project or Moles-level)
+- Create a copy of the correct template (for your level i.e Project/Moles/DRS) and fill in required values
+- Run `update_collection <path/to/collection_file.json> <parent_collection_name>`
+- Note: If creating a new Project-level collection, the parent is `cci`.
 
 ## Create Items
 

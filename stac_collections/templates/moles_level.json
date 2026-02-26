@@ -1,0 +1,73 @@
+{
+    "id": "<MOLES_UUID>",
+    "description": "<MOLES_DESCRIPTION>",
+    "stac_version": "1.1.0",
+    "links": [
+        {
+            "rel": "items",
+            "type": "application/geo+json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>/items"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "queryables",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>/queryables"
+        },
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>"
+        }
+    ],
+    "stac_extensions": [],
+    "title": "<MOLES_TITLE>",
+    "type": "Collection",
+    "assets": {
+        "thumbnail": {
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+            "roles": [
+                "thumbnail"
+            ]
+        }
+    },
+    "license": "other",
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1992-01-01T00:00:00Z",
+                    "2020-12-31T23:59:59Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "ESACCI",
+        "<PROJECT>",
+        "<MOLES_UUID>",
+        "<MOLES_KWARGS>"
+    ],
+    "providers": [],
+    "summaries": null
+}

@@ -11,17 +11,10 @@ from datetime import datetime
 import glob
 import copy
 
-from cci_tools.core.utils import STAC_API, client, auth, dryrun
-from cci_tools.stac.openeo import process_record
+from cci_tools.core.utils import STAC_API, client, auth, dryrun, es_client
+from cci_tools.stac.create_record import process_record
 
 # Setup client and query elasticsearch
-with open('API_CREDENTIALS') as f:
-    api_creds = json.load(f)
-    API_KEY = api_creds["secret"]
-
-escli = Elasticsearch(
-    hosts=['https://elasticsearch.164.30.69.113.nip.io'],
-    api_key=API_KEY)
 failed = []
 
 KERCHUNK_TEMPLATE={
@@ -127,7 +120,7 @@ KERCHUNK_TEMPLATE={
 
 def process_opensearch(line, kdir, kfile, ndir, nfile, tcs, tce):
 
-    hits = escli.search(
+    hits = es_client.search(
         index='opensearch-files',
         body = {
             "query":{
@@ -237,7 +230,7 @@ def process_file(line, count, total_files):
     nfile = sourcefile.split('/')[-1]
     ndir  = sourcefile.replace(f'/{nfile}','').replace('https://dap.ceda.ac.uk/','/')
 
-    hits = escli.search(
+    hits = es_client.search(
         index='opensearch-files',
         body = {
             "query":{
@@ -279,7 +272,7 @@ def process_file(line, count, total_files):
     except:
         print(' > No items - creating from opensearch')
         opensearch_record = process_opensearch(line, kdir, kfile, ndir, nfile, tcs, tce)
-        stac_record, ext  = process_record(opensearch_record['_source'], STAC_API)
+        stac_record, ext, _  = process_record(opensearch_record['_source'])
 
         stac_record['collection'] = stac_record['collection'].lower()
         stac_record['properties']['platforms'] = stac_record['properties'].pop('platform')

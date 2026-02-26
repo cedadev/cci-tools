@@ -19,7 +19,6 @@ dependencies = [
     "httpx-auth (>=0.23.1,<0.24.0)"
 ]
 
-
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -31,8 +30,8 @@ delete_collections = "cci_tools.cli.delete_collections:main"
 # Run STAC general commands with client
 stac_shell = "cci_tools.shell:main"
 
-# Update individual collections
-update_collection = "cci_tools.update_collection:main"
+# Push a new collection or update an existing one.
+update_collection = "cci_tools.cli.manual_collection:main"
 
 # Create Openeo collection
 create_openeo = "cci_tools.cli.openeo_aggregation:main"

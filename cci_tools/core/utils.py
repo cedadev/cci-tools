@@ -3,8 +3,11 @@ __contact__   = "daniel.westwood@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 import httpx
+import boto3
 import json
+import os
 from elasticsearch import Elasticsearch
+from obs import ObsClient
 
 dryrun = True
 
@@ -15,6 +18,12 @@ def open_json(file):
         return json.load(f)
 
 creds = open_json('AUTH_CREDENTIALS')
+
+with open('OBS_CREDENTIALS') as f:
+    refs = json.load(f)
+
+server = 'https://obs.eu-nl.otc.t-systems.com/'
+obsClient = ObsClient(access_key_id=refs['ak'], secret_access_key=refs['sk'], server=server)
 
 auth = OAuth2ClientCredentials(
     "https://accounts.ceda.ac.uk/realms/ceda/protocol/openid-connect/token",
@@ -43,6 +52,7 @@ def es_connection_kwargs(hosts, api_key, **kwargs):
         }
 
 STAC_API = 'https://api.stac.164.30.69.113.nip.io'
+s3 = boto3.client('s3')
 
 client = httpx.Client(
     verify=False,

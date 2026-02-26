@@ -1,12 +1,12 @@
 {
-  "id": "17c2ce31784048de93996275ee976fff-main",
-  "description": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=17c2ce31784048de93996275ee976fff",
+  "id": "<DRS_OR_MOLES_ID-main>",
+  "description": "https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=<MOLES_ID>",
   "stac_version": "1.1.0",
   "links": [
     {
       "rel": "items",
       "type": "application/geo+json",
-      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main/items"
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>/items"
     },
     {
       "rel": "parent",
@@ -16,7 +16,7 @@
     {
       "rel": "queryables",
       "type": "application/json",
-      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main/queryables"
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>/queryables"
     },
     {
       "rel": "root",
@@ -26,11 +26,11 @@
     {
       "rel": "self",
       "type": "application/json",
-      "href": "https://api.stac.164.30.69.113.nip.io/collections/17c2ce31784048de93996275ee976fff-main"
+      "href": "https://api.stac.164.30.69.113.nip.io/collections/<ID>"
     }
   ],
   "stac_extensions": [],
-  "title": "(NonDRS) ESA Sea Level Budget Closure Climate Change Initiative (SLBC_cci): Time series of global mean sea level budget and ocean mass budget elements (1993-2016, at monthly resolution), version 2.2",
+  "title": "<DRS_TITLE_OR_(Non-DRS) MOLES_TITLE",
   "type": "Collection",
   "assets": {
     "thumbnail": {
@@ -58,15 +58,15 @@
         }
   },
   "keywords": [
-        "sea_level_budget_closure",
         "ESACCI",
-        "sea-level-budget-closure",
-        "17c2ce31784048de93996275ee976fff"
+        "<MOLES_UUID>",
+        "<Project>",
+        "<DRS (components separated)>"
     ],
     "providers": [],
     "summaries": {
         "project": [
-            "sea-level-budget-closure"
+            "<PROJECT>"
         ]
   }
 }

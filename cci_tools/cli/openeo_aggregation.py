@@ -42,6 +42,8 @@ def apply_openeo_reqs_for_item(endpoint, did, ecv, moles_uuid, engine):
         collections=['cci_openeo',did]
     )
 
+    print(item_record)
+
     item_record['properties']['license'] = license
     item_record['properties']['aggregation'] = True
 
@@ -110,36 +112,29 @@ def main(endpoint: str, did: str, moles_uuid: str, ecv: str, dryrun: bool = Fals
 
     license='other' # xarray license not valid stac
 
+    keywords = []
+    if hasattr(ds, 'keywords'):
+        keywords = [k.strip() for k in ds.keywords.split('>')]
+
     collection_record = openeo_collection(
         did.lower() + '.openeo', 
-        ds.attrs['summary'],
+        ds.attrs.get('summary',None),
         [item_record['bbox']],
         item_record['properties']['start_datetime'],
         item_record['properties']['end_datetime'],
         ds.title,
         moles_uuid=moles_uuid,
-        keywords=did.split('-') + [k.strip() for k in ds.keywords.split('>')],
+        keywords=did.split('-') + keywords,
         summary_bands=summary_bands,
         license=license
     )
 
-    item_record['properties']['license'] = license
-    item_record['properties']['aggregation'] = True
-
-    item_record['properties']['cube:dimensions'] = {
-      "lat": {
-        "reference_system": "EPSG:4326"
-      },
-      "lon": {
-        "reference_system": "EPSG:4326"
-      }
-    }
-    item_record['properties']['proj:epsg'] = 4326
-    item_record['assets']['aggregation']['type'] = 'application/vnd+zarr'
-
     if dryrun:
-        with open('item.json','w') as f:
-            f.write(json.dumps(item_record))
+        try:
+            with open('item.json','w') as f:
+                f.write(json.dumps(item_record))
+        except TypeError:
+            print('Error: Unserializable')
         print('> Output to file: item')
 
         with open('collection.json','w') as f:

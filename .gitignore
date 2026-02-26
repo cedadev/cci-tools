@@ -2,6 +2,7 @@
 venv
 AUTH_CREDENTIALS
 API_CREDENTIALS
+OBS_CREDENTIALS
 stac_collections/gen
 openeo/records
 localfiles/

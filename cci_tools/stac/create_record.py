@@ -233,7 +233,7 @@ def process_record(
 
     if 'xarray' in fmt_override:
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
-        properties = {}
+        properties = stac_info['properties']
         
     elif file_ext in ALLOWED_OPENSEARCH_EXTS:
         # Information can only be extracted from OpenSearch record
@@ -317,13 +317,8 @@ def process_record(
         "bbox": stac_info["bbox"],
         "properties": {
             "datetime": None,
-            "start_datetime": stac_info["start_datetime"],
-            "end_datetime": stac_info["end_datetime"],
             "license": "other",
-            "version": stac_info["version"],
-            "file_type": stac_info["format"],
             "aggregation": False,
-            "platforms": stac_info["platforms"],
             "collections":[ecv, uuid, drs],
             **properties
         },

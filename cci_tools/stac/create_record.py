@@ -231,6 +231,7 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
+    fmt_override = fmt_override or ''
     if 'xarray' in fmt_override:
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
         properties = stac_info['properties']

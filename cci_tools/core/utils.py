@@ -19,11 +19,13 @@ def open_json(file):
 
 creds = open_json('AUTH_CREDENTIALS')
 
-with open('OBS_CREDENTIALS') as f:
-    refs = json.load(f)
+obsClient=None
+if os.path.isfile('OBS_CREDENTIALS'):
+    with open('OBS_CREDENTIALS') as f:
+        refs = json.load(f)
 
-server = 'https://obs.eu-nl.otc.t-systems.com/'
-obsClient = ObsClient(access_key_id=refs['ak'], secret_access_key=refs['sk'], server=server)
+    server = 'https://obs.eu-nl.otc.t-systems.com/'
+    obsClient = ObsClient(access_key_id=refs['ak'], secret_access_key=refs['sk'], server=server)
 
 auth = OAuth2ClientCredentials(
     "https://accounts.ceda.ac.uk/realms/ceda/protocol/openid-connect/token",

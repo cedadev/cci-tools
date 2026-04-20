@@ -66,12 +66,10 @@ def get_drs_reference(id):
               help='What type of nested collection to create', required=True)
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
-@click.option('--uuid', 'uuid', is_flag=True, required=False)
-
 
 def main(parent: str, child: str, 
          create: str = None, overwrite: bool = False,
-         dryrun: bool = False, uuid: str = None):
+         dryrun: bool = False):
     # Add collection by DRS to a parent moles ID
     # Add/refresh moles collection
 
@@ -105,13 +103,6 @@ def main(parent: str, child: str,
             pdata = add_drs_collection(pdata, get_drs_reference(child),
                                         overwrite=overwrite, dryrun=dryrun,
                                         uuid=parent)
-        case 'openeo':
-            if uuid is None:
-                raise ValueError('Missing UUID for this OpenEO collection')
-            
-            pdata = add_drs_collection(pdata, get_drs_reference(child),
-                                        suffix='.openeo', overwrite=overwrite,
-                                        dryrun=dryrun, uuid=uuid)
 
     print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
 

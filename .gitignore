@@ -6,6 +6,7 @@ OBS_CREDENTIALS
 stac_collections/gen
 openeo/records
 localfiles/
+testfiles/
 uploads/
 config/
 tests/

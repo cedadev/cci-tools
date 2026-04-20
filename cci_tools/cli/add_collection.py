@@ -104,7 +104,10 @@ def main(parent: str, child: str,
                                         overwrite=overwrite, dryrun=dryrun,
                                         uuid=parent)
 
-    print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
+    if dryrun:
+        print('Skipped updating parent - DRYRUN')
+    else:
+        print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
 
 
 if __name__ == '__main__':

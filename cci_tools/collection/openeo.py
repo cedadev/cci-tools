@@ -108,7 +108,7 @@ def openeo_collection(
             }
         ],
         "summaries": {
-            "eo:bands": [
+            "bands": [
                 {
                     "name": b,
                     "common_name": binfo.get('long_name'),

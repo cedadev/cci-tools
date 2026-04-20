@@ -19,11 +19,13 @@ def open_json(file):
 
 creds = open_json('AUTH_CREDENTIALS')
 
-with open('OBS_CREDENTIALS') as f:
-    refs = json.load(f)
+obsClient=None
+if os.path.isfile('OBS_CREDENTIALS'):
+    with open('OBS_CREDENTIALS') as f:
+        refs = json.load(f)
 
-server = 'https://obs.eu-nl.otc.t-systems.com/'
-obsClient = ObsClient(access_key_id=refs['ak'], secret_access_key=refs['sk'], server=server)
+    server = 'https://obs.eu-nl.otc.t-systems.com/'
+    obsClient = ObsClient(access_key_id=refs['ak'], secret_access_key=refs['sk'], server=server)
 
 auth = OAuth2ClientCredentials(
     "https://accounts.ceda.ac.uk/realms/ceda/protocol/openid-connect/token",
@@ -187,9 +189,15 @@ def get_opensearch_record(moles_id, drs_id):
         print(url, 'ERROR')
         return None
     
-def uuids_per_project(project, api_key):
+def uuids_per_project(project, api_key, hosts: list = None):
+    """
+    Get all collection uuids for a project from Elasticsearch.
+    """
+    if hosts is None:
+        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
+
     esc = Elasticsearch(
-        hosts=['https://elasticsearch.ceda.ac.uk'],
+        hosts=hosts,
         api_key=api_key
     )
 
@@ -202,9 +210,13 @@ def uuids_per_project(project, api_key):
         }
     )['hits']['hits']]
     
-def es_collection(uuid, api_key):
+def es_collection(uuid, api_key, hosts: list = None):
+
+    if hosts is None:
+        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
+
     esc = Elasticsearch(
-        hosts=['https://elasticsearch.ceda.ac.uk'],
+        hosts=hosts,
         api_key=api_key
     )
 

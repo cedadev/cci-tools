@@ -46,12 +46,24 @@ Post created items to the STAC API. Requires the directory of saved STAC records
 
 # OpenEO Datasets - Process for creating a dataset.
 
+## 1. Creating the Dataset
+
 OpenEO datasets are created using command `create_openeo`. This only requires an `endpoint` to be given, which can be the path to a kerchunk file or zarr store.
 
 Additional parameters that should be given:
-- `--did`: Dataset ID if not just the name of the kerchunk file.
+- `--did`: Dataset ID if not just the name of the kerchunk file. NOTE: Omit the `.openeo` label as this is automatically added for ALL openeo collections.
 - `--uuid`: Moles UUID for this dataset.
 - `--ecv`: ECV/Project to add to the STAC metadata.
 - `-d`: Dryrun: Will output STAC collection/item to the local filesystem.
 
 Note: This creates a collection container AND a STAC item, so the Kerchunk file/zarr store is an asset of an item which forms part of the OpenEO collection (with 1 item)
+
+## 2. Publishing the Dataset
+
+Newly created openeo datasets are not connected to the parent `cci_openeo` collection automatically, to allow for testing and to ensure any issues are resolved before publication.
+
+Once you are satisfied the new collection is correct and all details are valid (and the load function works properly), migration can occur.
+
+```
+migrate_collection <openeo_collection.openeo> root --new_parent cci_openeo
+```

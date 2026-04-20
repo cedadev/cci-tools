@@ -167,7 +167,8 @@ def create_stac(
                 searchAfter = hits[-1]["sort"]
                 body['search_after'] = searchAfter
                 response = es_client.search(index='opensearch-files', body=body)
-                if len(response["hits"]["hits"]) == 0:
+                hits=response["hits"]["hits"]
+                if len(hits) == 0:
                     is_last=True
             
         if failed_list:

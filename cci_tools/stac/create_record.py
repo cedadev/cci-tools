@@ -231,6 +231,7 @@ def process_record(
     # Extract dataset ID (UUID)
     uuid = es_all_dict['projects']['opensearch'].get('datasetId')
 
+    fmt_override = fmt_override or ''
     if 'xarray' in fmt_override:
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
         properties = stac_info['properties']
@@ -302,7 +303,22 @@ def process_record(
     if uuid is not None:
         properties["opensearch_url"] = f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
         properties["esa_url"] = f"https://climate.esa.int/en/catalogue/{uuid}/",
+    
+    vals = ["start_datetime", "end_datetime", "version", "file_type", "platforms"]
 
+    for v in vals:
+        if not properties.get(v, None):
+            if v == "file_type":
+                properties[v]=stac_info["format"]
+            else:
+                properties[v]=stac_info[v]
+
+    top_properties = {}
+    for v in vals:
+        temp_dict = properties.pop(v, None)
+        if temp_dict is not None:
+            top_properties[v] = temp_dict
+    
     # Create a dictionary of the required STAC output
     stac_dict = {
         "type": "Feature",
@@ -317,6 +333,7 @@ def process_record(
         "bbox": stac_info["bbox"],
         "properties": {
             "datetime": None,
+            **top_properties,
             "license": "other",
             "aggregation": False,
             "collections":[ecv, uuid, drs],
@@ -363,6 +380,8 @@ def process_record(
     # Until then, the platform list is entered as 'platforms' instead.
     if 'platform' in stac_dict['properties'] or file_ext == '.nc':
         stac_dict['properties'].pop('platform')
+    if 'platformGroup' in stac_dict['properties'] or file_ext == '.nc':
+        stac_dict['properties'].pop('platformGroup')    
 
     return stac_dict, file_ext, incomplete
 

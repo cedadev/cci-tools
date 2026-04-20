@@ -1,6 +1,6 @@
 [project]
 name = "cci-tools"
-version = "0.1.0"
+version = "0.1.1"
 description = "Package containing many cci scripts in the tools folder"
 authors = [
     {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
@@ -34,7 +34,10 @@ delete_collections = "cci_tools.cli.delete_collections:main"
 # Run STAC general commands with client
 stac_shell = "cci_tools.shell:main"
 
-# Push a new collection or update an existing one.
+# Create a new collection based on existing templates
+new_collection = "cci_tools.cli.add_collection:main"
+
+# Manually push a new collection or update an existing one.
 update_collection = "cci_tools.cli.manual_collection:main"
 
 # Create Openeo collection

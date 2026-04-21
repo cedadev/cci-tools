@@ -8,7 +8,8 @@ from cci_tools.core.utils import client, auth, STAC_API
 from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,
-    add_uuid_collection
+    add_uuid_collection,
+    get_project_labels_from_vocabs
 )
 
 import click
@@ -62,7 +63,7 @@ def get_drs_reference(id):
 @click.command()
 @click.argument('parent')
 @click.argument('child')
-@click.option('--create', 'create', type=click.Choice(['project','moles','drs','openeo']),
+@click.option('--create', 'create', type=click.Choice(['project','moles','drs','all']),
               help='What type of nested collection to create', required=True)
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
@@ -89,9 +90,19 @@ def main(parent: str, child: str,
     pdata = presp.json()
     
     match create:
+        case 'all':
+            # Create ALL project collections - find all project labels
+
+            project_labels = get_project_labels_from_vocabs()
+
+            for label in project_labels:
+                pdata = create_project_collection(label, pdata,
+                                               overwrite=overwrite,
+                                               api_key=api_key,
+                                               dryrun=dryrun)
+
         case 'project':
             pdata = create_project_collection(child, pdata, 
-                                               project_kwargs=get_project_kwargs(),
                                                overwrite=overwrite,
                                                api_key=api_key,
                                                dryrun=dryrun)

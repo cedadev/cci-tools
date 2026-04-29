@@ -9,6 +9,14 @@ import os
 from elasticsearch import Elasticsearch
 from obs import ObsClient
 
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logstream = logging.StreamHandler()
+
+formatter = logging.Formatter('%(levelname)s [%(name)s]: %(message)s')
+logstream.setFormatter(formatter)
+
 dryrun = True
 
 from httpx_auth import OAuth2ClientCredentials
@@ -188,46 +196,6 @@ def get_opensearch_record(moles_id, drs_id):
         # A DRS can be allocated to multiple moles uuids if the `path` matches multiple moles uuids.
         print(url, 'ERROR')
         return None
-    
-def uuids_per_project(project, api_key, hosts: list = None):
-    """
-    Get all collection uuids for a project from Elasticsearch.
-    """
-    if hosts is None:
-        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
-
-    esc = Elasticsearch(
-        hosts=hosts,
-        api_key=api_key
-    )
-
-    return [i['_source']['collection_id'] for i in esc.search(index='opensearch-collections', body={
-        "query": {
-            "match": {
-                "project": project.lower(),
-            }
-        }
-        }
-    )['hits']['hits']]
-    
-def es_collection(uuid, api_key, hosts: list = None):
-
-    if hosts is None:
-        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
-
-    esc = Elasticsearch(
-        hosts=hosts,
-        api_key=api_key
-    )
-
-    return esc.search(index='opensearch-collections', body={
-        "query": {
-            "match": {
-                "collection_id": uuid.lower(),
-            }
-        }
-        }
-    )['hits']['hits'][0]
 
 def count_items(collection, item_aggregations=False, quick_check=False):
     """

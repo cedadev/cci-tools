@@ -11,9 +11,47 @@ from cci_tools.core.utils import (
     STAC_API,
     COLLECTION_TEMPLATE,
     get_opensearch_record,
-    uuids_per_project,
-    es_collection
+    logstream
 )
+
+from cci_tools.elasticsearch import (
+    uuids_per_project,
+    es_collection,
+)
+
+
+import logging
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
+
+def get_project_kwargs():
+    """
+    Get kwargs for project construction."""
+    
+    accepted = False
+    while not accepted:
+        print('Start of project temporal range: ')
+        temporal_start = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
+
+        print('End of project temporal range: ')
+        temporal_end = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
+
+        temporal = [temporal_start,temporal_end]
+
+        description = input('Project-level Abstract: ')
+
+        print(f'Temporal: {temporal}')
+        print(f'Description: {description}')
+        
+        if input('Accept these values? (Y/N) ') == 'Y':
+            accepted = True
+
+    return {
+        'temporal': temporal,
+        'abstract': description
+    }
 
 def get_project_labels_from_vocabs():
 
@@ -25,6 +63,14 @@ def get_project_labels_from_vocabs():
             project_labels.append(ont["http://www.w3.org/2004/02/skos/core#prefLabel"][0]["@value"].replace(' ','_'))
 
     return project_labels
+
+def set_field(default_or_existing_value, new_value, exists: bool = False):
+    if exists and default_or_existing_value:
+        # If exists and has a value already
+        return default_or_existing_value
+    else:
+        # If exists and does not have a value, or does not exist
+        return new_value
 
 def remove_duplicate_links(old_links: list, allow_capitals: bool = True):
     """
@@ -58,7 +104,7 @@ def add_drs_collection(
         drs_reference: dict,  
         overwrite: bool = False, 
         dryrun: bool = False,
-        uuid: str = None) -> dict:
+        uuid: str = None) -> tuple:
     """
     Add a DRS collection to a parent MOLES UUID-based collection
 
@@ -71,15 +117,15 @@ def add_drs_collection(
     exists = False
     current = client.get(f"{STAC_API}/collections/{id.lower()}")
     if current.status_code == 200:
-        if not overwrite:
+        if not overwrite and not dryrun:
             print(f'DRS collection {id} already exists, skipping (use --overwrite to update)')
-            return parent
+            return parent, False
         exists = True
         drs_stac = current.json()
     else:
         drs_stac = copy.deepcopy(COLLECTION_TEMPLATE)
     
-
+    # Get extent from parent or opensearch
     extent = copy.deepcopy(parent['extent'])
     if drs_reference['id']:
         opensearch_record = get_opensearch_record(
@@ -88,7 +134,7 @@ def add_drs_collection(
         )
         
         if opensearch_record is None:
-            return parent
+            return parent, False
         
         dates = []
         for i in opensearch_record['features']:
@@ -117,13 +163,12 @@ def add_drs_collection(
     else:
         title = id
 
-    drs_stac['id'] = id.lower()
-    drs_stac['description'] = drs_reference['description_url']
-    drs_stac['title'] = title
+    drs_stac['id']          = set_field(drs_stac.get('id'), id.lower(), exists=exists)
+    drs_stac['description'] = set_field(drs_stac.get('description'), drs_reference['description_url'], exists=exists)
+    drs_stac['title']       = set_field(drs_stac.get('title'), title, exists=exists)
 
-    drs_stac['extent'] = extent
+    drs_stac['extent']      = set_field(drs_stac.get('extent'), extent, exists=exists)
 
-    drs_stac['keywords'] = drs_stac['keywords'] or []
     drs_stac['keywords'] = list(
         set(
             drs_stac.get('keywords',[]) + \
@@ -185,7 +230,7 @@ def add_drs_collection(
 
         print(f' > > {id}: {response}')
 
-    return parent
+    return parent, not exists
 
 def get_drs_set_for_uuid(collection_id: str, drs_ids: list):
     """
@@ -217,30 +262,45 @@ def add_uuid_collection(
     es_coll_data  = es_collection(uuid, api_key=api_key)
     collection_id = es_coll_data['collection_id']
 
-    for drs_ref in get_drs_set_for_uuid(collection_id, drs_ids=es_coll_data.get('drs_ids',[])):
-        moles_stac = add_drs_collection(drs_ref, moles_stac, 
-            overwrite=overwrite,
-            uuid=uuid)
-
     exists = False
-    current = client.get(f"{STAC_API}/collections/{id}")
+    current = client.get(f"{STAC_API}/collections/{collection_id}")
     if current.status_code == 200:
-        if not overwrite:
-            print(f'MOLES collection {collection_id} already exists, skipping (use --overwrite to update)')
-            return project_coll
+        if not overwrite and not dryrun and not new_drss:
+            print(f'MOLES collection {collection_id} already exists and no changes are expected, skipping (use --overwrite to update)')
+            return project_coll, False
         exists = True
         moles_stac = current.json()
     else:
         moles_stac = copy.deepcopy(COLLECTION_TEMPLATE)
 
-    abstract = requests.get(
-        f'https://catalogue.ceda.ac.uk/api/v2/observations.json?discoveryKeywords__name=ESACCI&uuid={collection_id}').json()['results'][0]['abstract']
+    moles_parent = {
+        'id': set_field(moles_stac.get('id'), collection_id, exists=exists), 
+        'links':[], 
+        'title': set_field(moles_stac.get('title'), es_coll_data.get('title'), exists=exists),
+        'extent': moles_stac.get('extent')
+    }
 
-    moles_stac['id'] = collection_id
-    moles_stac['title'] = es_coll_data['title']
-    moles_stac['description'] = abstract + '\n\n' + f'https://catalogue.ceda.ac.uk/uuid/{es_coll_data["collection_id"]}'
+    new_drss = False
+    for drs_ref in get_drs_set_for_uuid(collection_id, drs_ids=es_coll_data.get('drsId',[])):
+        moles_parent, added = add_drs_collection(moles_parent, drs_ref, 
+            overwrite=overwrite,
+            dryrun=dryrun,
+            uuid=uuid)
+        
+        new_drss = new_drss or added
+
+    moles_stac.update(moles_parent)
+
+    moles_info = requests.get(
+        f'https://catalogue.ceda.ac.uk/api/v3/observations/?discoveryKeywords__name=ESACCI&uuid={collection_id}').json()
     
-    moles_stac['keywords'] = project_coll['keywords']
+    abstract = moles_info['results'][0]['abstract']
+
+    moles_stac['description'] = set_field(
+        moles_stac.get('description'),
+        abstract + '\n\n' + f'https://catalogue.ceda.ac.uk/uuid/{es_coll_data["collection_id"]}',
+        exists=exists
+    )
 
     start = (es_coll_data.get('start_date',None) or '1970-01-01').split('T')[0]
     end = (es_coll_data.get('end_date',None) or '2025-12-31').split('T')[0]
@@ -250,7 +310,9 @@ def add_uuid_collection(
         f"{end}T23:59:59Z",
     ]
 
-    moles_stac['extent'] = {
+    # Only use the new value if there's no current extent.
+    # Prevents resetting values for extent that have been set outside this mechanism.
+    moles_stac['extent'] = set_field(moles_stac.get('extent'), {
         "spatial": {
             "bbox": [
                 [
@@ -266,29 +328,29 @@ def add_uuid_collection(
                 temporal_coverage
             ]
         }
-    }
+    }, exists=exists)
 
     moles_stac['links'].append({
         "rel": "items",
         "type": "application/geo+json",
-        "href": f"{STAC_API}/collections/{id}/items"
+        "href": f"{STAC_API}/collections/{collection_id}/items"
     })
     moles_stac['links'].append({
         "rel": "parent",
         "type": "application/json",
-        "href": f"{STAC_API}/collections/{uuid}"
+        "href": f"{STAC_API}/collections/{project_coll.get('id')}"
     })
     moles_stac['links'].append({
         "rel": "self",
         "type": "application/json",
-        "href": f"{STAC_API}/collections/{id}"
+        "href": f"{STAC_API}/collections/{collection_id}"
     })
 
     moles_stac['keywords'] = list(
         set(
             project_coll.get('keywords',[]) + \
-            moles_stac.get('keywords',[]) + \
-            id.split('.')
+            moles_stac.get('keywords',[]) or [] + \
+            collection_id.split('.')
         )
     )
 
@@ -297,13 +359,13 @@ def add_uuid_collection(
     project_coll['links'].append({
         "rel" : "child",
         "type": "application/json",
-        "href": f"{STAC_API}/collections/{id}"
+        "href": f"{STAC_API}/collections/{collection_id}"
     })
 
     if dryrun:
-        with open(f'stac_collections/gen/{id}.json','w') as f:
-            f.write(json.dumps(project_coll))
-        print(f'{id}: Local')
+        with open(f'stac_collections/gen/{collection_id}.json','w') as f:
+            f.write(json.dumps(moles_stac))
+        print(f'{collection_id}: Local')
 
     else:
         if exists:
@@ -325,12 +387,12 @@ def add_uuid_collection(
             print(moles_stac['extent'])
             print(response.content)
 
-    return project_coll
+    return project_coll, not exists
 
 def create_project_collection(
         project: str, 
         parent: dict, 
-        dataset_collection: str,
+        dataset_collection: str = None,
         overwrite: bool = False,
         api_key: str = None,
         dryrun: bool = False):
@@ -345,39 +407,53 @@ def create_project_collection(
 
     # Get description and temporal coverage from moles?
 
-    # Dataset Collections
-    moles_reference = requests.get(f'https://catalogue.ceda.ac.uk/api/v3/observationcollections/?uuid={dataset_collection}').json()['results'][0]
-
     id = project.replace('-','_')
 
+    child_coll = {'id': id, 'links':[]}
+
+    new_uuids = False
     # Find all moles UUIDs (from opensearch-collections) for this project type.
     for uuid in uuids_per_project(project, api_key=api_key):
-        project_coll = add_uuid_collection(project, project_coll, uuid, 
+        if uuid == 'cci':
+            continue
+        child_coll, add_uuid = add_uuid_collection(child_coll, uuid, 
                                            overwrite=overwrite,
                                            api_key=api_key, dryrun=dryrun)
+        new_uuids = new_uuids or add_uuid
 
     exists = False
     current = client.get(f"{STAC_API}/collections/{id}")
     if current.status_code == 200:
-        if not overwrite:
-            print(f'Project collection {id} already exists, skipping (use --overwrite to update)')
-            return parent 
+        if not overwrite and not dryrun and not new_uuids:
+            print(f'Project collection {id} already exists and no changes expected, skipping (use --overwrite to update)')
+            return parent, 
         
         exists = True
         project_coll = current.json()
     else:
         project_coll = copy.deepcopy(COLLECTION_TEMPLATE)
 
-    project_coll['id'] = id
-    project_coll['title'] = project
+    # Dataset Collections
+    if dataset_collection:
+        moles_reference = requests.get(f'https://catalogue.ceda.ac.uk/api/v3/observationcollections/?uuid={dataset_collection}').json()['results'][0]
+    elif exists:
+        moles_reference = {}
+        pass
+    else:
+        moles_reference = get_project_kwargs()
 
-    project_coll['description'] = moles_reference['abstract']
+    project_coll['links'] = project_coll.get('links',[]) + child_coll.get('links',[])
+
+    project_coll['id'] = set_field(project_coll.get('id'), id, exists=exists)
+    project_coll['title'] = set_field(project_coll.get('title'), project, exists=exists)
+
+    project_coll['description'] = set_field(project_coll.get('description'),moles_reference.get('abstract'), exists=exists)
 
     # Temporal coverage of a whole ecv?
-    temporal_coverage = None
+    temporal_coverage = set_field(project_coll.get('extent',{}).get('temporal_coverage'), moles_reference.get('temporal'), exists=exists)
 
     ## Other metadata (summaries, keywords)
-    project_coll['summaries'] = {'project': [project]}
+    project_coll['summaries'] = set_field(project_coll.get('summaries'), {'project': [project]}, exists=exists)
 
     project_coll['keywords'] = list(
         set(['ESACCI', project, id] + id.split('.') + moles_reference.get('keywords',[]))
@@ -447,6 +523,6 @@ def create_project_collection(
             )
         print(f'{id}: {response}')
 
-    return parent
+    return parent, not exists
 
     

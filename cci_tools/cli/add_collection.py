@@ -15,33 +15,6 @@ from cci_tools.collection.main import (
 import click
 import os
 
-def get_project_kwargs():
-    """
-    Get kwargs for project construction."""
-    
-    accepted = False
-    while not accepted:
-        print('Start of project temporal range: ')
-        temporal_start = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
-
-        print('End of project temporal range: ')
-        temporal_end = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
-
-        temporal = [temporal_start,temporal_end]
-
-        description = input('Project Description')
-
-        print(f'Temporal: {temporal}')
-        print(f'Description: {description}')
-        
-        if input('Accept these values? (Y/N) ') == 'Y':
-            accepted = True
-
-    return {
-        'temporal': temporal,
-        'description': description
-    }
-
 def get_drs_reference(id):
     """
     Get kwargs for DRS creation"""
@@ -67,10 +40,11 @@ def get_drs_reference(id):
               help='What type of nested collection to create', required=True)
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
+@click.option('--ds_collection','dataset_collection', required=False)
 
 def main(parent: str, child: str, 
          create: str = None, overwrite: bool = False,
-         dryrun: bool = False):
+         dryrun: bool = False, dataset_collection: str = None):
     # Add collection by DRS to a parent moles ID
     # Add/refresh moles collection
 
@@ -102,21 +76,24 @@ def main(parent: str, child: str,
                                                dryrun=dryrun)
 
         case 'project':
-            pdata = create_project_collection(child, pdata, 
+            pdata, added = create_project_collection(child, pdata,
+                                               dataset_collection=dataset_collection,
                                                overwrite=overwrite,
                                                api_key=api_key,
                                                dryrun=dryrun)
         case 'moles':
-            pdata = add_uuid_collection(pdata, child, 
+            pdata, added = add_uuid_collection(pdata, child, 
                                          overwrite=overwrite, dryrun=dryrun,
                                          api_key=api_key)
         case 'drs':
-            pdata = add_drs_collection(pdata, get_drs_reference(child),
+            pdata, added = add_drs_collection(pdata, get_drs_reference(child),
                                         overwrite=overwrite, dryrun=dryrun,
                                         uuid=parent)
 
     if dryrun:
         print('Skipped updating parent - DRYRUN')
+    elif not added:
+        print('Skipped updating parent - No updates to children')
     else:
         print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
 

@@ -19,6 +19,27 @@ logstream.setFormatter(formatter)
 
 dryrun = True
 
+def set_verbose(level: int):
+    """
+    Reset the logger basic config.
+    """
+
+    levels = [
+        logging.WARN,
+        logging.INFO,
+        logging.DEBUG,
+    ]
+
+    if level >= len(levels):
+        level = len(levels) - 1
+
+    for name in logging.root.manager.loggerDict:
+        lg = logging.getLogger(name)
+        if 'cci_tools' in name:
+            lg.setLevel(levels[level])
+        else:
+            lg.setLevel(levels[max(level-1,0)])
+
 from httpx_auth import OAuth2ClientCredentials
 
 def open_json(file):
@@ -121,7 +142,7 @@ COLLECTION_TEMPLATE = {
       ]
     }
   },
-  "keywords": None,
+  "keywords": [],
   "providers": [],
   "summaries": None
 }

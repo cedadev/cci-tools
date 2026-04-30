@@ -9,11 +9,18 @@ from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,
     add_uuid_collection,
-    get_project_labels_from_vocabs
+    get_project_labels_from_opensearch
 )
 
 import click
 import os
+
+import logging
+from cci_tools.core.utils import logstream, set_verbose
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
 
 def get_drs_reference(id):
     """
@@ -41,10 +48,11 @@ def get_drs_reference(id):
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
 @click.option('--ds_collection','dataset_collection', required=False)
+@click.option('-v','verbose', count=True)
 
 def main(parent: str, child: str, 
          create: str = None, overwrite: bool = False,
-         dryrun: bool = False, dataset_collection: str = None):
+         dryrun: bool = False, dataset_collection: str = None, verbose: int = 1):
     # Add collection by DRS to a parent moles ID
     # Add/refresh moles collection
 
@@ -52,6 +60,8 @@ def main(parent: str, child: str,
     # child
     # create [moles, drs, openeo]
     # Overwrite
+
+    set_verbose(verbose)
 
     api_key = os.environ.get("ES_API_KEY")
     if not api_key:
@@ -67,10 +77,11 @@ def main(parent: str, child: str,
         case 'all':
             # Create ALL project collections - find all project labels
 
-            project_labels = get_project_labels_from_vocabs()
+            project_labels = get_project_labels_from_opensearch()
+            print(f'Checking existing project collections: {len(project_labels)}')
 
             for label in project_labels:
-                pdata = create_project_collection(label, pdata,
+                pdata, added = create_project_collection(label, pdata,
                                                overwrite=overwrite,
                                                api_key=api_key,
                                                dryrun=dryrun)

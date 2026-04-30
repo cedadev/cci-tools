@@ -6,20 +6,20 @@ def uuids_per_project(project, api_key, hosts: list = None):
     Get all collection uuids for a project from Elasticsearch.
     """
     if hosts is None:
-        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
+        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.164.30.69.113.nip.io')]
 
     esc = Elasticsearch(
         hosts=hosts,
         api_key=api_key
     )
 
-    return [i['_source']['collection_id'] for i in esc.search(index='opensearch-collections', body={
+    hits = esc.search(index='opensearch-collections', body={
         "query": {
             "bool":{
                 "must":[
                     {
                         "match": {
-                            "project": project.lower(),
+                            "project": project.lower().replace('_',' '),
                         }
                     }
                 ],
@@ -32,12 +32,14 @@ def uuids_per_project(project, api_key, hosts: list = None):
                 ]}
             }
         }
-    )['hits']['hits']]
+    )['hits']['hits']
+
+    return [i['_source']['collection_id'] for i in hits]
     
 def es_collection(uuid, api_key, hosts: list = None):
 
     if hosts is None:
-        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.ceda.ac.uk')]
+        hosts = [os.environ.get('ES_HOST', 'https://elasticsearch.164.30.69.113.nip.io')]
 
     esc = Elasticsearch(
         hosts=hosts,

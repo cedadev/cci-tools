@@ -10,7 +10,6 @@ from cci_tools.core.utils import (
     auth, 
     STAC_API,
     COLLECTION_TEMPLATE,
-    get_opensearch_record,
     logstream
 )
 
@@ -19,6 +18,7 @@ from cci_tools.elasticsearch import (
     es_collection,
 )
 
+from xml.dom import minidom
 
 import logging
 
@@ -53,16 +53,30 @@ def get_project_kwargs():
         'abstract': description
     }
 
-def get_project_labels_from_vocabs():
+def get_project_labels_from_opensearch():
 
-    project_labels = []
-    ontology = requests.get('https://vocab.ceda.ac.uk/ontology/cci/cci-content/cci-ontology.json').json()
-    for ont in ontology:
+    content = minidom.parseString(
+        requests.get('https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier=cci').content
+    )
         
-        if 'cci/project' in ont["@id"]:
-            project_labels.append(ont["http://www.w3.org/2004/02/skos/core#prefLabel"][0]["@value"].replace(' ','_'))
+    project_values, ecv_values = [], []
+    for param in content.getElementsByTagName("param:Parameter"):
+        if param.getAttribute("name") == "project":
+            options = param.getElementsByTagName("param:Option")
+            project_values += [o.getAttribute('value').lower().replace(' ','_') for o in options]
+        if param.getAttribute("name") == "ecv":
+            options = param.getElementsByTagName("param:Option")
+            ecv_values += [o.getAttribute('value').lower().replace(' ','_') for o in options]
 
-    return project_labels
+    exists = []
+    for project in list(set(project_values)):
+        if requests.get('https://api.stac.164.30.69.113.nip.io/collections/' + project).status_code == 200:
+            exists.append(project)
+    for ecv in list(set(ecv_values)):
+        if requests.get('https://api.stac.164.30.69.113.nip.io/collections/' + ecv).status_code == 200:
+            exists.append(ecv)
+
+    return sorted(list(set(exists)))
 
 def set_field(default_or_existing_value, new_value, exists: bool = False):
     if exists and default_or_existing_value:
@@ -117,45 +131,19 @@ def add_drs_collection(
     exists = False
     current = client.get(f"{STAC_API}/collections/{id.lower()}")
     if current.status_code == 200:
-        if not overwrite and not dryrun:
-            print(f'DRS collection {id} already exists, skipping (use --overwrite to update)')
+        if not overwrite:
+            if dryrun:
+                logger.info(f' > > DRS Collection "{id}" no changes detected (use --overwrite to update)')
             return parent, False
+        
         exists = True
         drs_stac = current.json()
     else:
+        logger.info(f' > > NEW DRS Collection: "{id}"')
         drs_stac = copy.deepcopy(COLLECTION_TEMPLATE)
     
     # Get extent from parent or opensearch
     extent = copy.deepcopy(parent['extent'])
-    if drs_reference['id']:
-        opensearch_record = get_opensearch_record(
-            parent['id'], 
-            drs_reference['id']
-        )
-        
-        if opensearch_record is None:
-            return parent, False
-        
-        dates = []
-        for i in opensearch_record['features']:
-            if 'date' not in i['properties']:
-                continue
-            dates += i['properties'].get('date','').split('/')
-
-        if len(dates) == 0:
-            dates = [
-                '1970-01-01T00:00:00Z',
-                '2025-09-17T00:00:00Z'
-            ]
-
-        dates = sorted(dates)
-        for d in range(len(dates)):
-            dates[d] = dates[d].split('+')[0]
-
-            if dates[d][-1] != 'Z':
-                dates[d] += 'Z'
-
-        extent['temporal']['interval'][0] = [dates[0], dates[-1]]
     
     if id == "":
         id = parent['id'] + '-main' # -main of parent
@@ -206,7 +194,7 @@ def add_drs_collection(
     if dryrun:
         with open(f'stac_collections/gen/{id}.json','w') as f:
             f.write(json.dumps(drs_stac))
-        print(f'{id}: Local')
+        logger.info(f'{id}: Local')
     else:
         if exists:
             response = 'Skipped'
@@ -228,7 +216,7 @@ def add_drs_collection(
         elif response.status_code not in [200,201]:
             raise ValueError(response.content)
 
-        print(f' > > {id}: {response}')
+        logger.info(f' > > {id}: {response}')
 
     return parent, not exists
 
@@ -265,9 +253,6 @@ def add_uuid_collection(
     exists = False
     current = client.get(f"{STAC_API}/collections/{collection_id}")
     if current.status_code == 200:
-        if not overwrite and not dryrun and not new_drss:
-            print(f'MOLES collection {collection_id} already exists and no changes are expected, skipping (use --overwrite to update)')
-            return project_coll, False
         exists = True
         moles_stac = current.json()
     else:
@@ -288,6 +273,14 @@ def add_uuid_collection(
             uuid=uuid)
         
         new_drss = new_drss or added
+
+    if exists:
+        if not overwrite and not new_drss:
+            if dryrun:
+                logger.info(f' > MOLES Collection "{collection_id}" no changes detected (use --overwrite to update)')
+            return project_coll, False
+    else:
+        logger.info(f' > NEW MOLES Collection: "{collection_id}"')
 
     moles_stac.update(moles_parent)
 
@@ -365,7 +358,7 @@ def add_uuid_collection(
     if dryrun:
         with open(f'stac_collections/gen/{collection_id}.json','w') as f:
             f.write(json.dumps(moles_stac))
-        print(f'{collection_id}: Local')
+        logger.info(f'{collection_id}: Local')
 
     else:
         if exists:
@@ -382,10 +375,10 @@ def add_uuid_collection(
                 json=moles_stac,
                 auth=auth,
             )
-        print(f' > {id}: {response}')
+        logger.info(f' > {id}: {response}')
         if response.status_code == 400:
-            print(moles_stac['extent'])
-            print(response.content)
+            logger.info(moles_stac['extent'])
+            logger.info(response.content)
 
     return project_coll, not exists
 
@@ -424,13 +417,15 @@ def create_project_collection(
     exists = False
     current = client.get(f"{STAC_API}/collections/{id}")
     if current.status_code == 200:
-        if not overwrite and not dryrun and not new_uuids:
-            print(f'Project collection {id} already exists and no changes expected, skipping (use --overwrite to update)')
-            return parent, 
+        if not overwrite and not new_uuids:
+            if dryrun:
+                logger.info(f'Project collection "{id}" no changes detected (use --overwrite to update)')
+            return parent, False
         
         exists = True
         project_coll = current.json()
     else:
+        logger.info(f'NEW Project Collection: "{id}"')
         project_coll = copy.deepcopy(COLLECTION_TEMPLATE)
 
     # Dataset Collections
@@ -504,7 +499,7 @@ def create_project_collection(
     if dryrun:
         with open(f'stac_collections/gen/{id}.json','w') as f:
             f.write(json.dumps(project_coll))
-        print(f'{id}: Local')
+        logger.info(f'{id}: Local')
     else:
         if exists:
             response = 'Skipped'
@@ -521,7 +516,7 @@ def create_project_collection(
                 json=project_coll,
                 auth=auth,
             )
-        print(f'{id}: {response}')
+        logger.info(f'{id}: {response}')
 
     return parent, not exists
 

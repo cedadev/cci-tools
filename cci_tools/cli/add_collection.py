@@ -8,38 +8,19 @@ from cci_tools.core.utils import client, auth, STAC_API
 from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,
-    add_uuid_collection
+    add_uuid_collection,
+    get_project_labels_from_opensearch
 )
 
 import click
 import os
 
-def get_project_kwargs():
-    """
-    Get kwargs for project construction."""
-    
-    accepted = False
-    while not accepted:
-        print('Start of project temporal range: ')
-        temporal_start = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
+import logging
+from cci_tools.core.utils import logstream, set_verbose
 
-        print('End of project temporal range: ')
-        temporal_end = input('(format: YYYY-MM-DDTHH:MM:SSZ) : ')
-
-        temporal = [temporal_start,temporal_end]
-
-        description = input('Project Description')
-
-        print(f'Temporal: {temporal}')
-        print(f'Description: {description}')
-        
-        if input('Accept these values? (Y/N) ') == 'Y':
-            accepted = True
-
-    return {
-        'temporal': temporal,
-        'description': description
-    }
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
 
 def get_drs_reference(id):
     """
@@ -62,14 +43,16 @@ def get_drs_reference(id):
 @click.command()
 @click.argument('parent')
 @click.argument('child')
-@click.option('--create', 'create', type=click.Choice(['project','moles','drs','openeo']),
+@click.option('--create', 'create', type=click.Choice(['project','moles','drs','all']),
               help='What type of nested collection to create', required=True)
 @click.option('--overwrite', 'overwrite', is_flag=True, required=False)
 @click.option('--dryrun', 'dryrun', is_flag=True, required=False)
+@click.option('--ds_collection','dataset_collection', required=False)
+@click.option('-v','verbose', count=True)
 
 def main(parent: str, child: str, 
          create: str = None, overwrite: bool = False,
-         dryrun: bool = False):
+         dryrun: bool = False, dataset_collection: str = None, verbose: int = 1):
     # Add collection by DRS to a parent moles ID
     # Add/refresh moles collection
 
@@ -77,6 +60,8 @@ def main(parent: str, child: str,
     # child
     # create [moles, drs, openeo]
     # Overwrite
+
+    set_verbose(verbose)
 
     api_key = os.environ.get("ES_API_KEY")
     if not api_key:
@@ -89,23 +74,37 @@ def main(parent: str, child: str,
     pdata = presp.json()
     
     match create:
+        case 'all':
+            # Create ALL project collections - find all project labels
+
+            project_labels = get_project_labels_from_opensearch()
+            print(f'Checking existing project collections: {len(project_labels)}')
+
+            for label in project_labels:
+                pdata, added = create_project_collection(label, pdata,
+                                               overwrite=overwrite,
+                                               api_key=api_key,
+                                               dryrun=dryrun)
+
         case 'project':
-            pdata = create_project_collection(child, pdata, 
-                                               project_kwargs=get_project_kwargs(),
+            pdata, added = create_project_collection(child, pdata,
+                                               dataset_collection=dataset_collection,
                                                overwrite=overwrite,
                                                api_key=api_key,
                                                dryrun=dryrun)
         case 'moles':
-            pdata = add_uuid_collection(pdata, child, 
+            pdata, added = add_uuid_collection(pdata, child, 
                                          overwrite=overwrite, dryrun=dryrun,
                                          api_key=api_key)
         case 'drs':
-            pdata = add_drs_collection(pdata, get_drs_reference(child),
+            pdata, added = add_drs_collection(pdata, get_drs_reference(child),
                                         overwrite=overwrite, dryrun=dryrun,
                                         uuid=parent)
 
     if dryrun:
         print('Skipped updating parent - DRYRUN')
+    elif not added:
+        print('Skipped updating parent - No updates to children')
     else:
         print(parent, client.put(f'{STAC_API}/collections/{parent}', json=pdata, auth=auth))
 

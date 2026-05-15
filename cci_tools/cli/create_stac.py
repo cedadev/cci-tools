@@ -8,8 +8,15 @@ from cci_tools.core.utils import (
     get_dir_query,
 )
 from cci_tools.stac.create_record import handle_process_record
+import logging
+from cci_tools.core.utils import logstream, set_verbose
 
-ACCEPTABLE_RESPONSES = ["OK","Excluded"]
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
+
+ACCEPTABLE_RESPONSES = ["OK", "Excluded"]
+
 
 # Parse command line arguments using click
 @click.command()
@@ -59,6 +66,7 @@ ACCEPTABLE_RESPONSES = ["OK","Excluded"]
     is_flag=True,
     help="Enable OpenEO-specific STAC configurations",
 )
+@click.option("-v", "--verbose", count=True)
 @click.option("--halt", "halt", required=False, is_flag=True, help="Halt on errors")
 def main(
     cci_dirs: str,
@@ -68,6 +76,7 @@ def main(
     start_time: str | None = None,
     end_time: str | None = None,
     halt: bool = False,
+    verbose: int = 0,
     **kwargs,
 ):
     """
@@ -79,6 +88,7 @@ def main(
 
     For GeoTIFF files, only partial information is available within the OpenSearch record, so additional metadata is extracted from the GeoTIFF file itself.
     """
+    set_verbose(verbose)
 
     exclusion = exclusion or "uf8awhjidaisdf8sd"
 

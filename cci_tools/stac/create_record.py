@@ -11,6 +11,13 @@ from cci_tools.readers.geotiff import read_geotiff
 from cci_tools.readers.xarray import scrape_xarray
 from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API
 
+import logging
+from cci_tools.core.utils import logstream
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
+
 
 def extract_id(es_all_dict: dict):
     """
@@ -32,7 +39,7 @@ def extract_collection(es_all_dict: dict):
         if len(ecv) == 1:
             ecv = str(ecv[0]).lower()
         else:
-            print("ECV is a list!!")
+            raise ValueError("Handling of multi-ecv record not supported")
 
     return ecv
 
@@ -85,8 +92,8 @@ def extract_opensearch(es_all_dict: dict):
                 ]
             ]
     except Exception as err:
-        print(f"Exception extracting opensearch geo-information: {err}")
-        print(" > Using Global Defaults")
+        logger.info(f"Exception extracting opensearch geo-information: {err}")
+        logger.info(" > Using Global Defaults")
         incomplete = True
         bbox = [-180, -90, 180, 90]
         geo_type = "Polygon"
@@ -99,8 +106,8 @@ def extract_opensearch(es_all_dict: dict):
         edatetime = str(es_all_dict["info"]["temporal"].get("end_time"))
         end_datetime = edatetime.partition("+")[0] + "Z"
     except Exception as err:
-        print(f"Exception extracting opensearch temporal information: {err}")
-        print(" > Using Global Defaults")
+        logger.info(f"Exception extracting opensearch temporal information: {err}")
+        logger.info(" > Using Global Defaults")
         incomplete = True
         start_datetime = "0001-01-01T00:00:00Z"
         end_datetime = "0001-01-01T00:00:00Z"
@@ -110,8 +117,8 @@ def extract_opensearch(es_all_dict: dict):
         platforms = es_all_dict["projects"]["opensearch"].get("platform")
         drs = es_all_dict["projects"]["opensearch"].get("drsId")
     except Exception as err:
-        print(f"Exception extracting opensearch facet information: {err}")
-        print(" > Using Global Defaults")
+        logger.info(f"Exception extracting opensearch facet information: {err}")
+        logger.info(" > Using Global Defaults")
         incomplete = True
         version = "Unknown"
         platforms = "Unknown"
@@ -125,7 +132,7 @@ def extract_opensearch(es_all_dict: dict):
                 value = value[0]
             properties[property] = value
     except Exception as err:
-        print(f"Exception when fetching properties: {err}")
+        logger.info(f"Exception when fetching properties: {err}")
 
     # Extract format
     format = es_all_dict.get("info", {}).get("format")
@@ -164,7 +171,7 @@ def handle_process_record(
 
     incomplete = False
     if exclusion in record["_source"]["info"]["name"]:
-        print(
+        logger.info(
             f"Skipping {record['_source']['info']['name']} due to exclusion: {exclusion}"
         )
         return "Excluded"
@@ -187,7 +194,7 @@ def handle_process_record(
     except Exception as err:
         if halt:
             raise err
-        print(f"Failed to create STAC record: {err}")
+        logger.info(f"Failed to create STAC record: {err}")
         return str(err)
 
     # Create directory for each CCI ECV/Project
@@ -197,13 +204,13 @@ def handle_process_record(
     if not os.path.isdir(cci_stac_dir):
         try:
             os.mkdir(cci_stac_dir)
-            print(f"Created directory '{cci_stac_dir}' successfully")
+            logger.info(f"Created directory '{cci_stac_dir}' successfully")
         except PermissionError as err:
             raise err
         except Exception as err:
             if halt:
                 raise err
-            print(f"An error occured '{err}'")
+            logger.error(f"An error occured '{err}'")
             return "Failed:" + str(err)
 
     # Write 'pretty print' STAC json file
@@ -265,8 +272,8 @@ def process_record(
         stac_info["format"] = stac_info["format"].replace(" ", "_")
 
         if not isinstance(stac_info, dict):
-            print(
-                "Error: OpenSearch record does not contain the required information to create a STAC record."
+            logger.error(
+                "OpenSearch record does not contain the required information to create a STAC record."
             )
             return {"error": "InsufficientInformation"}, incomplete
 
@@ -286,13 +293,13 @@ def process_record(
         incomplete = stac_info["properties"].get("incomplete", False)
 
         if not isinstance(stac_info, dict):
-            print(
-                f"Error: GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}"
+            logger.error(
+                f"GeoTIFF file does not contain the required information to create a STAC record: {location}/{fname}"
             )
             return {"error": "InsufficientInformation"}, incomplete
 
     else:
-        print(f"Error: File format {file_ext} not recognised!")
+        logger.error(f"File format {file_ext} not recognised!")
         return {"error": "FormatUnrecognised"}, False
 
     exts = [
@@ -318,7 +325,7 @@ def process_record(
                     file_id = file_id.replace(split, mapping[0])
                     asset_id = mapping[1]  # Asset label.
             if asset_id is None:
-                print("WARNING: No splitting identified for this item")
+                logger.warning("No splitting identified for this item")
 
     remote_location = location
     if "https://" not in remote_location:

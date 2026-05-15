@@ -10,3 +10,4 @@ testfiles/
 uploads/
 config/
 tests/
+*__pycache__*

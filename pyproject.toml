@@ -1,9 +1,10 @@
 [project]
 name = "cci-tools"
-version = "0.1.1"
+version = "0.2.0"
 description = "Package containing many cci scripts in the tools folder"
 authors = [
-    {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
+    {name = "Daniel Westwood", email = "daniel.westwood@stfc.ac.uk"},
+    {name = "Diane Knappett", email = "diane.knappett@stfc.ac.uk"}
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
@@ -20,7 +21,8 @@ dependencies = [
     "huawei-obs (>=0.0.1,<0.0.2)",
     "boto3 (>=1.42.70,<2.0.0)",
     "kerchunk (>=0.2.9,<0.3.0)",
-    "aiohttp (>=3.13.3,<4.0.0)"
+    "aiohttp (>=3.13.3,<4.0.0)",
+    "slack-sdk (>=3.41.0,<4.0.0)"
 ]
 
 [build-system]
@@ -63,3 +65,11 @@ count_items = "cci_tools.cli.collection_item_count:main"
 
 # Migrate a collection
 migrate_collection = "cci_tools.cli.migrate_collection:main"
+
+# Sweep Live Services
+ping_services = "cci_tools.cli.service_sweep:main"
+
+[dependency-groups]
+dev = [
+    "black (>=26.3.1,<27.0.0)"
+]

@@ -3,68 +3,100 @@ import json
 import os
 
 from cci_tools.core.utils import (
-    es_client, client, auth, STAC_API,
-    get_file_query, get_dir_query
+    es_client,
+    get_file_query,
+    get_dir_query,
 )
-from cci_tools.stac.create_record import (
-    handle_process_record
-)
+from cci_tools.stac.create_record import handle_process_record
+import logging
+from cci_tools.core.utils import logstream, set_verbose
+
+logger = logging.getLogger(__name__)
+logger.addHandler(logstream)
+logger.propagate = False
+
+ACCEPTABLE_RESPONSES = ["OK", "Excluded"]
+
 
 # Parse command line arguments using click
 @click.command()
-@click.argument('cci_dirs')
-@click.argument('output_dir', type=click.Path(exists=True))
-@click.option('--output_drs', 'output_drs', required=False,
-              help='DRS to apply to all items for the CCI dirs specified')
-@click.option('--exclusion',  'exclusion', required=False,
-              help='Exclude opensearch records with this string present in their name')
-@click.option('--start_time', 'start_time', required=False,
-              help='Manually specify %Y%m%dT%H%M%SZ format start_time') # "%Y%m%dT%H%M%SZ"
-@click.option('--end_time',   'end_time', required=False,
-              help='Manually specify %Y%m%dT%H%M%SZ format end_time')
-@click.option('--interval',   'interval', required=False,
-              help='Interval for where start_time is defined by the filename')
-@click.option('--global',   'assume_global', required=False, is_flag=True,
-              help='Assume global coverage where other data is not present')
-@click.option('--openeo',   'openeo', required=False, is_flag=True,
-              help='Enable OpenEO-specific STAC configurations')
-@click.option('--halt',   'halt', required=False, is_flag=True,
-              help='Halt on errors')
-
+@click.argument("cci_dirs")
+@click.argument("output_dir", type=click.Path(exists=True))
+@click.option(
+    "--output_drs",
+    "output_drs",
+    required=False,
+    help="DRS to apply to all items for the CCI dirs specified",
+)
+@click.option(
+    "--exclusion",
+    "exclusion",
+    required=False,
+    help="Exclude opensearch records with this string present in their name",
+)
+@click.option(
+    "--start_time",
+    "start_time",
+    required=False,
+    help="Manually specify %Y%m%dT%H%M%SZ format start_time",
+)  # "%Y%m%dT%H%M%SZ"
+@click.option(
+    "--end_time",
+    "end_time",
+    required=False,
+    help="Manually specify %Y%m%dT%H%M%SZ format end_time",
+)
+@click.option(
+    "--interval",
+    "interval",
+    required=False,
+    help="Interval for where start_time is defined by the filename",
+)
+@click.option(
+    "--global",
+    "assume_global",
+    required=False,
+    is_flag=True,
+    help="Assume global coverage where other data is not present",
+)
+@click.option(
+    "--openeo",
+    "openeo",
+    required=False,
+    is_flag=True,
+    help="Enable OpenEO-specific STAC configurations",
+)
+@click.option("-v", "--verbose", count=True)
+@click.option("--halt", "halt", required=False, is_flag=True, help="Halt on errors")
 def main(
-        cci_dirs, 
-        output_dir, 
-        output_drs, 
-        **kwargs
-    ):
-    '''
+    cci_dirs: str,
+    output_dir: str,
+    output_drs: str,
+    exclusion: str | None = None,
+    start_time: str | None = None,
+    end_time: str | None = None,
+    halt: bool = False,
+    verbose: int = 0,
+    **kwargs,
+):
+    """
+    CLI Function to create STAC Records.
+
     Reads in OpenSearch records for CCI NetCDF and geotiff data.
 
     For NetCDF files, information is extracted from the OpenSearch record only.
 
     For GeoTIFF files, only partial information is available within the OpenSearch record, so additional metadata is extracted from the GeoTIFF file itself.
-    '''
-    create_stac(cci_dirs, output_dir, output_drs, **kwargs)
+    """
+    set_verbose(verbose)
 
-def create_stac(
-        cci_dirs, 
-        output_dir, 
-        output_drs, 
-        exclusion=None, 
-        start_time=None, 
-        end_time=None,
-        halt=False,
-        **kwargs
-    ):
-    
-    exclusion = exclusion or 'uf8awhjidaisdf8sd'
+    exclusion = exclusion or "uf8awhjidaisdf8sd"
 
     splitter = None
-    drs = output_drs
 
     if os.path.isfile(cci_dirs):
         with open(cci_dirs) as f:
-            cci_configurations = [r.strip().split(',') for r in f.readlines()]
+            cci_configurations = [r.strip().split(",") for r in f.readlines()]
     else:
         cci_configurations = [[cci_dirs]]
 
@@ -72,29 +104,25 @@ def create_stac(
 
         cci_dir = cfg[0]
         if len(cfg) > 1:
-            drs = cfg[1]
+            output_drs = cfg[1]
         if len(cfg) > 2:
             if os.path.isfile(cfg[2]):
                 with open(cfg[2]) as f:
                     splitter = json.load(f)
             else:
-                splitter=cfg[2]
-        
+                splitter = cfg[2]
 
         print(f"Input CCI directory: {cci_dir}")
         print(f"Output STAC record directory: {output_dir}")
-
-        if drs == '':
-            drs = output_drs
+        print(f"Using DRS: {output_drs}")
 
         # Loop over OpenSearch records, converting each to STAC format
-        failed_list=[]
-        count_success=0
-        count_fail=0
+        failed_list = []
+        count_success, count_fail = 0, 0
         is_last = False
 
         if os.path.isfile(cci_dir):
-            if cci_dir.endswith('.txt'):
+            if cci_dir.endswith(".txt"):
                 with open(cci_dir) as f:
                     fileset = [r.strip() for r in f.readlines()]
             else:
@@ -102,85 +130,84 @@ def create_stac(
 
             for file in fileset:
                 body = get_file_query(file)
-                hits = es_client.search(index='opensearch-files', body=body)['hits']['hits']
+                hits = es_client.search(index="opensearch-files", body=body)["hits"][
+                    "hits"
+                ]
 
                 if len(hits) == 0:
                     print("")
                     print(f"{file}: Not found in Opensearch")
                     count_fail += 1
                     continue
-                
+
                 record = hits[0]
-                success, status = handle_process_record(
+                response = handle_process_record(
                     record,
                     output_dir,
                     exclusion=exclusion,
-                    drs=drs,
+                    drs=output_drs,
                     splitter=splitter,
                     start_time=start_time,
                     end_time=end_time,
                     halt=halt,
-                    **kwargs
+                    **kwargs,
                 )
 
-                if not success:
-                    failed_list.append(f'{file}:{status}')
-                    count_fail += 1
-                elif not status:
-                    failed_list.append(f'{file}:incomplete')
+                if response not in ACCEPTABLE_RESPONSES:
+                    failed_list.append(f"{file}:{response}")
                     count_fail += 1
                 else:
                     count_success += 1
         else:
+            # Multi-File Query
             body = get_dir_query(cci_dir)
-            hits = es_client.search(index='opensearch-files', body=body)['hits']['hits']
+            hits = es_client.search(index="opensearch-files", body=body)["hits"]["hits"]
             if len(hits) == 0:
                 print("")
                 print(f"{cci_dir}: No OpenSearch hits found!")
                 continue
-        
+
             while len(hits) == 10 or not is_last:
                 if len(hits) != 10:
                     is_last = True
                 for record in hits:
-                    success, status = handle_process_record(
+                    response = handle_process_record(
                         record,
                         output_dir,
                         exclusion=exclusion,
-                        drs=drs,
+                        drs=output_drs,
                         splitter=splitter,
                         start_time=start_time,
                         end_time=end_time,
                         halt=halt,
-                        **kwargs
+                        **kwargs,
                     )
-                    file = record['_source']['info']['name']
-                    if not success:
-                        failed_list.append(f'{file}:{status}')
-                        count_fail += 1
-                    elif not status:
-                        failed_list.append(f'{file}:incomplete')
+                    file = record["_source"]["info"]["name"]
+                    if response not in ACCEPTABLE_RESPONSES:
+                        failed_list.append(f"{file}:{response}")
                         count_fail += 1
                     else:
                         count_success += 1
 
                 searchAfter = hits[-1]["sort"]
-                body['search_after'] = searchAfter
-                response = es_client.search(index='opensearch-files', body=body)
-                hits=response["hits"]["hits"]
+                body["search_after"] = searchAfter
+                response = es_client.search(index="opensearch-files", body=body)
+                hits = response["hits"]["hits"]
                 if len(hits) == 0:
-                    is_last=True
-            
-        if failed_list:
+                    is_last = True
+
+        if len(failed_list) > 0:
             try:
-                output_failed_files=f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
+                output_failed_files = f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
             except:
-                output_failed_files=f"{output_dir}/failed_files-no_datasetID.txt"
+                output_failed_files = f"{output_dir}/failed_files-no_datasetID.txt"
 
             with open(output_failed_files, "w") as file:
                 for item in failed_list:
                     file.write(item + "\n")
-            print(f"The list of files for which STAC records could not be created, or that were created but are incomplete, have been written to the following file:")
+            print(
+                f"The list of files for which STAC records could not be created, or that were created but are incomplete, have been written to the following file:"
+            )
             print(output_failed_files)
             print("")
 

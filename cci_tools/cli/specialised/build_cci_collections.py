@@ -1,18 +1,18 @@
-__author__    = "Daniel Westwood"
-__contact__   = "daniel.westwood@stfc.ac.uk"
+__author__ = "Daniel Westwood"
+__contact__ = "daniel.westwood@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 import json
 import copy
 import requests
 
-# Top Level CCI
+# Top Level CCI
 
 ## Projects (ECVs) + reccap2 + Sea Level Budget Closure
 ## from slug
 
 ### Features (Moles Datasets)
-### 
+###
 
 from httpx import Client
 from httpx_auth import OAuth2ClientCredentials
@@ -24,38 +24,34 @@ from cci_tools.core.utils import client, auth, STAC_API
 import os
 import click
 
-@click.command()
-@click.option('--dryrun', 'dryrun', is_flag=True, required=False)
 
+@click.command()
+@click.option("--dryrun", "dryrun", is_flag=True, required=False)
 def main(dryrun):
 
-    with open('config/cci_ecv_config.json') as f:
+    with open("config/cci_ecv_config.json") as f:
         config = json.load(f)
-
 
     exists = False
     current = client.get(f"{STAC_API}/collections/cci")
-    if str(current.status_code)[0] == '2':
+    if str(current.status_code)[0] == "2":
         exists = True
         cci = current.json()
     else:
-        with open('stac_collections/cci.json') as f:
-            ccio = ''.join(f.readlines()).replace('STAC_API',STAC_API)
+        with open("stac_collections/cci.json") as f:
+            ccio = "".join(f.readlines()).replace("STAC_API", STAC_API)
         cci = json.loads(ccio)
 
-    top_ignore = ["facet_config","ecv_labels","ecv_title_ids","full_search_results"]
+    top_ignore = ["facet_config", "ecv_labels", "ecv_title_ids", "full_search_results"]
     keys = [c for c in config.keys() if c not in top_ignore]
 
-    for project in (keys + ['reccap2','sea-level-budget-closure']):
-        
+    for project in keys + ["reccap2", "sea-level-budget-closure"]:
+
         cci = create_project_collection(
-            project,
-            cci,
-            project_reference=config,
-            dryrun=dryrun
+            project, cci, project_reference=config, dryrun=dryrun
         )
 
-    cci['links'] = remove_duplicate_links(cci['links'])
+    cci["links"] = remove_duplicate_links(cci["links"])
 
     if not dryrun:
         if exists:
@@ -70,11 +66,12 @@ def main(dryrun):
                 json=cci,
                 auth=auth,
             )
-        print(f'CCI: {response}')
+        print(f"CCI: {response}")
     else:
-        print('CCI: Skipped')
-        with open('stac_collections/gen/cci.json','w') as f:
+        print("CCI: Skipped")
+        with open("stac_collections/gen/cci.json", "w") as f:
             f.write(json.dumps(cci))
-    
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     main()

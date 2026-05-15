@@ -425,7 +425,7 @@ def add_uuid_collection(
 def create_project_collection(
     project: str,
     parent: dict,
-    dataset_collection: str = None,
+    dataset_collection: str | None = None,
     overwrite: bool = False,
     api_key: str = None,
     dryrun: bool = False,

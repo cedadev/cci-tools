@@ -1,9 +1,10 @@
 [project]
 name = "cci-tools"
-version = "0.1.1"
+version = "0.2.0"
 description = "Package containing many cci scripts in the tools folder"
 authors = [
-    {name = "Daniel Westwood",email = "daniel.westwood@stfc.ac.uk"}
+    {name = "Daniel Westwood", email = "daniel.westwood@stfc.ac.uk"},
+    {name = "Diane Knappett", email = "diane.knappett@stfc.ac.uk"}
 ]
 readme = "README.md"
 requires-python = ">=3.11,<3.13"

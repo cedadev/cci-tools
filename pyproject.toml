@@ -71,5 +71,7 @@ ping_services = "cci_tools.cli.service_sweep:main"
 
 [dependency-groups]
 dev = [
-    "black (>=26.3.1,<27.0.0)"
+    "black (>=26.3.1,<27.0.0)",
+    "sphinx (>=7,<8)",
+    "sphinx-rtd-theme (>=3.1.0,<4.0.0)"
 ]

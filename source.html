@@ -18,7 +18,9 @@
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
-    <link rel="search" title="Search" href="search.html" /> 
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="The STAC Shell and Custom Scripts" href="shell.html" />
+    <link rel="prev" title="Using the CCI STAC Tools" href="tools.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -40,11 +42,25 @@
   </form>
 </div>
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
-              <!-- Local TOC -->
-              <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Source Code for the CCI STAC Tools</a></li>
+              <p class="caption" role="heading"><span class="caption-text">Sections</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="opensearch.html">Opensearch &amp; MOLES</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collections.html">CCI STAC Collections Explained</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Using The Tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Source Code</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#collections-tools">Collections Tools</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#elasticsearch-queries">Elasticsearch queries</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#module-cci_tools.readers.file">File readers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#cci_tools.readers.geotiff.read_geotiff"><code class="docutils literal notranslate"><span class="pre">read_geotiff()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#cci_tools.readers.geotiff.access_geotiff"><code class="docutils literal notranslate"><span class="pre">access_geotiff()</span></code></a></li>
 </ul>
-</div>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#stac-creations">STAC Creations</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">The STAC Tools Shell</a></li>
+</ul>
+
         </div>
       </div>
     </nav>
@@ -71,12 +87,39 @@
              
   <section id="source-code-for-the-cci-stac-tools">
 <h1>Source Code for the CCI STAC Tools<a class="headerlink" href="#source-code-for-the-cci-stac-tools" title="Link to this heading"></a></h1>
+<section id="collections-tools">
+<h2>Collections Tools<a class="headerlink" href="#collections-tools" title="Link to this heading"></a></h2>
+</section>
+<section id="elasticsearch-queries">
+<h2>Elasticsearch queries<a class="headerlink" href="#elasticsearch-queries" title="Link to this heading"></a></h2>
+</section>
+<section id="module-cci_tools.readers.file">
+<span id="file-readers"></span><h2>File readers<a class="headerlink" href="#module-cci_tools.readers.file" title="Link to this heading"></a></h2>
+<dl class="py function" id="module-cci_tools.readers.geotiff">
+<dt class="sig sig-object py" id="cci_tools.readers.geotiff.read_geotiff">
+<span class="sig-prename descclassname"><span class="pre">cci_tools.readers.geotiff.</span></span><span class="sig-name descname"><span class="pre">read_geotiff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">geotiff_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/cci_tools/readers/geotiff.html#read_geotiff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cci_tools.readers.geotiff.read_geotiff" title="Link to this definition"></a></dt>
+<dd><p>Wrapper for accessing geotiffs</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="cci_tools.readers.geotiff.access_geotiff">
+<span class="sig-prename descclassname"><span class="pre">cci_tools.readers.geotiff.</span></span><span class="sig-name descname"><span class="pre">access_geotiff</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">src</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">geotiff_file</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">start_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end_time</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">assume_global</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fill_incomplete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">openeo</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">tuple</span><span class="p"><span class="pre">[</span></span><span class="pre">dict</span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="pre">dict</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="_modules/cci_tools/readers/geotiff.html#access_geotiff"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#cci_tools.readers.geotiff.access_geotiff" title="Link to this definition"></a></dt>
+<dd><p>Read data from a GeoTiff file to produce a valid set of STAC info.</p>
+</dd></dl>
+
+</section>
+<section id="stac-creations">
+<span id="module-cci_tools.readers.xarray"></span><h2>STAC Creations<a class="headerlink" href="#stac-creations" title="Link to this heading"></a></h2>
+</section>
 </section>
 
 
            </div>
           </div>
-          <footer>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tools.html" class="btn btn-neutral float-left" title="Using the CCI STAC Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="shell.html" class="btn btn-neutral float-right" title="The STAC Shell and Custom Scripts" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
 
   <hr/>
 

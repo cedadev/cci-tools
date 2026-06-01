@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CCI STAC Collections &mdash; CCI STAC Tools 0.1.0 documentation</title>
+  <title>The STAC Shell and Custom Scripts &mdash; CCI STAC Tools 0.1.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
 
@@ -19,8 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Using the CCI STAC Tools" href="tools.html" />
-    <link rel="prev" title="Opensearch &amp; MOLES" href="opensearch.html" /> 
+    <link rel="prev" title="Source Code for the CCI STAC Tools" href="source.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -45,10 +44,10 @@
               <p class="caption" role="heading"><span class="caption-text">Sections</span></p>
 <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="opensearch.html">Opensearch &amp; MOLES</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">CCI STAC Collections Explained</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collections.html">CCI STAC Collections Explained</a></li>
 <li class="toctree-l1"><a class="reference internal" href="tools.html">Using The Tools</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source.html">Source Code</a></li>
-<li class="toctree-l1"><a class="reference internal" href="shell.html">The STAC Tools Shell</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">The STAC Tools Shell</a></li>
 </ul>
 
         </div>
@@ -65,9 +64,9 @@
           <div role="navigation" aria-label="Page navigation">
   <ul class="wy-breadcrumbs">
       <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
-      <li class="breadcrumb-item active">CCI STAC Collections</li>
+      <li class="breadcrumb-item active">The STAC Shell and Custom Scripts</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="_sources/collections.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/shell.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -75,45 +74,15 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
              
-  <section id="cci-stac-collections">
-<h1>CCI STAC Collections<a class="headerlink" href="#cci-stac-collections" title="Link to this heading"></a></h1>
-<p>The CCI STAC Index is laid out as follows:</p>
-<ul class="simple">
-<li><dl class="simple">
-<dt>CCI (top level collection)</dt><dd><ul>
-<li><dl class="simple">
-<dt>Project/ECV (Essential Climate Variable)</dt><dd><ul>
-<li><dl class="simple">
-<dt>UUID/Dataset (Moles Catalog Record)</dt><dd><ul>
-<li><dl class="simple">
-<dt>DRS-level collections</dt><dd><ul>
-<li><p>File-based Items in each collection.</p></li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-</dd>
-</dl>
-</li>
-</ul>
-<p>Additionally, a separate <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection exists to store OpenEO compliant collections separate to normal STAC records for ease of use. This is mostly due to restrictions on non-data items which are present in the plain STAC collections but are not allowed in OpenEO - the set of items in a collection must provide a full regular spatio-temporal description of the dataset.</p>
+  <section id="the-stac-shell-and-custom-scripts">
+<h1>The STAC Shell and Custom Scripts<a class="headerlink" href="#the-stac-shell-and-custom-scripts" title="Link to this heading"></a></h1>
 </section>
 
 
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="opensearch.html" class="btn btn-neutral float-left" title="Opensearch &amp; MOLES" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="tools.html" class="btn btn-neutral float-right" title="Using the CCI STAC Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="source.html" class="btn btn-neutral float-left" title="Source Code for the CCI STAC Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

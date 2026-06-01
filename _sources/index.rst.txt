@@ -25,8 +25,8 @@ Install the CCI STAC tools by running ``pip install -e .`` after cloning this re
    The CCI tools requires a virtual environment using python 3.11 or later. Be sure you have a compatible python environment activated before installing the tools.
 
 .. toctree::
-   :maxdepth: 1
-   :caption: Sections:
+   :caption: Sections
+   
    Opensearch & MOLES <opensearch>
    CCI STAC Collections Explained <collections>
    Using The Tools <tools>

@@ -30,6 +30,7 @@ Install the CCI STAC tools by running ``pip install -e .`` after cloning this re
    Opensearch & MOLES <opensearch>
    CCI STAC Collections Explained <collections>
    Using The Tools <tools>
+   Source Code <source>
    The STAC Tools Shell <shell>
 
 Indices and tables

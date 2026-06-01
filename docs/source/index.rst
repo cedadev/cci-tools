@@ -27,9 +27,10 @@ Install the CCI STAC tools by running ``pip install -e .`` after cloning this re
 .. toctree::
    :maxdepth: 1
    :caption: Sections:
-   CCI STAC Collections Explained <collections>
    Opensearch & MOLES <opensearch>
+   CCI STAC Collections Explained <collections>
    Using The Tools <tools>
+   The STAC Tools Shell <shell>
 
 Indices and tables
 ==================

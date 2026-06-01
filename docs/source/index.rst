@@ -6,6 +6,7 @@
 CCI STAC Tools
 ==============
 
+This is the start of the CCI STAC Tools official documentation for CEDA CCI Staff Members.
 
 Indices and tables
 ==================

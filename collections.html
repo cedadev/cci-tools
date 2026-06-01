@@ -71,6 +71,35 @@
              
   <section id="cci-stac-collections">
 <h1>CCI STAC Collections<a class="headerlink" href="#cci-stac-collections" title="Link to this heading"></a></h1>
+<p>The CCI STAC Index is laid out as follows:</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt>CCI (top level collection)</dt><dd><ul>
+<li><dl class="simple">
+<dt>Project/ECV (Essential Climate Variable)</dt><dd><ul>
+<li><dl class="simple">
+<dt>UUID/Dataset (Moles Catalog Record)</dt><dd><ul>
+<li><dl class="simple">
+<dt>DRS-level collections</dt><dd><ul>
+<li><p>File-based Items in each collection.</p></li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+</ul>
+<p>Additionally, a separate <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection exists to store OpenEO compliant collections separate to normal STAC records for ease of use. This is mostly due to restrictions on non-data items which are present in the plain STAC collections but are not allowed in OpenEO - the set of items in a collection must provide a full regular spatio-temporal description of the dataset.</p>
 </section>
 
 

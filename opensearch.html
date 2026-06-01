@@ -42,7 +42,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Opensearch &amp; MOLES</a></li>
+<li><a class="reference internal" href="#">Opensearch &amp; MOLES</a><ul>
+<li><a class="reference internal" href="#opensearch-collections">opensearch-collections</a></li>
+<li><a class="reference internal" href="#opensearch-service">Opensearch service</a></li>
+<li><a class="reference internal" href="#moles">MOLES</a></li>
+</ul>
+</li>
 </ul>
 </div>
         </div>
@@ -71,6 +76,20 @@
              
   <section id="opensearch-moles">
 <h1>Opensearch &amp; MOLES<a class="headerlink" href="#opensearch-moles" title="Link to this heading"></a></h1>
+<section id="opensearch-collections">
+<h2>opensearch-collections<a class="headerlink" href="#opensearch-collections" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">opensearch-collections</span></code> Elasticsearch index is effectively the source of truth for the published CCI datasets, as it is the backend resource used by the opensearch service, which in turn is used by the CCI Open Data Portal to display datasets. Collection records are regenerated nightly by aggregating results from <code class="docutils literal notranslate"><span class="pre">opensearch-files</span></code> which is where the tagged data file records are stored.</p>
+<p>Each document in the collections index contains the tags for a particular Moles Dataset (including the ECV/project) as well as the DRS’ covered by that dataset. It is therefore possible to obtain a full picture of the ECV-MOLES-DRS landscape by querying the collections index.</p>
+</section>
+<section id="opensearch-service">
+<h2>Opensearch service<a class="headerlink" href="#opensearch-service" title="Link to this heading"></a></h2>
+<p>The opensearch service supports multiple query types to get collection-level and file-level information based on the tagged file index <code class="docutils literal notranslate"><span class="pre">opensearch-files</span></code> and the <code class="docutils literal notranslate"><span class="pre">opensearch-collections</span></code> index described above. The service is a django application supporting complex elasticsearch queries made via URL queries to the front-end service. Queries from elasticsearch (including aggregations) are interpreted and displayed in JSON/XML format by the opensearch service, where download/ftp/manifest links may have been collected from multiple sources.</p>
+</section>
+<section id="moles">
+<h2>MOLES<a class="headerlink" href="#moles" title="Link to this heading"></a></h2>
+<p>The MOLES catalog is the CEDA source of truth for published datasets, where CCI datasets must first be published and made available as MOLES records before they become visible to the CCI ODP. Once a MOLES record has been generated, listed as ‘Citable/Published’ and has the <code class="docutils literal notranslate"><span class="pre">ESACCI</span></code> discovery keyword added it becomes visible to the Collection Regen nightly build, where a new entry will be added for the new MOLES ID. This will then be consumed by the ODP and should become visible the following day. Please check the aggregated tags in the <code class="docutils literal notranslate"><span class="pre">opensearch-collections</span></code> index for a given dataset at the first sign of missing or incorrect data in the ODP.</p>
+<p>All the above provide sources of information for generating the STAC items/collections, discussed in the next section.</p>
+</section>
 </section>
 
 

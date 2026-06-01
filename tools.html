@@ -42,7 +42,12 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <!-- Local TOC -->
               <div class="local-toc"><ul>
-<li><a class="reference internal" href="#">Using the CCI STAC Tools</a></li>
+<li><a class="reference internal" href="#">Using the CCI STAC Tools</a><ul>
+<li><a class="reference internal" href="#creating-collections">Creating Collections</a></li>
+<li><a class="reference internal" href="#update-collections">Update Collections</a></li>
+<li><a class="reference internal" href="#delete-collections-items">Delete Collections/Items</a></li>
+</ul>
+</li>
 </ul>
 </div>
         </div>
@@ -71,6 +76,36 @@
              
   <section id="using-the-cci-stac-tools">
 <h1>Using the CCI STAC Tools<a class="headerlink" href="#using-the-cci-stac-tools" title="Link to this heading"></a></h1>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>For all the commands below, you can access further help using the <code class="docutils literal notranslate"><span class="pre">--help</span></code> flag, to see the options available for each.</p>
+</div>
+<section id="creating-collections">
+<h2>Creating Collections<a class="headerlink" href="#creating-collections" title="Link to this heading"></a></h2>
+<p>Create a new collection (ECV/MOLES/DRS level) using the command below:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">$</span> <span class="pre">new_collection</span> <span class="pre">&lt;parent&gt;</span> <span class="pre">&lt;child&gt;</span>
+<span class="pre">`</span></code></p>
+<p>Where the <code class="docutils literal notranslate"><span class="pre">parent</span></code> is the collection above the one you are trying to create (i.e for a new MOLES entry, the parent is the ECV), and the <code class="docutils literal notranslate"><span class="pre">child</span></code> is the name of the new collection. Note that this tool will create all sub-collections of your new collection that exist, by checking the <code class="docutils literal notranslate"><span class="pre">opensearch-collections</span></code> elasticsearch index, which is effectively a source of truth for published CCI datasets.</p>
+</section>
+<section id="update-collections">
+<h2>Update Collections<a class="headerlink" href="#update-collections" title="Link to this heading"></a></h2>
+<p>It is also possible to make a manual adjustment to CCI collections, where a specific field needs some correction. The index can be downloaded via wget/curl from the STAC index from <code class="docutils literal notranslate"><span class="pre">STAC_API/collections/COLLECTION</span></code>. Save the JSON file locally and make any changes necessary. The collection can then be reuploaded using:</p>
+<p><code class="docutils literal notranslate"><span class="pre">`</span>
+<span class="pre">$</span> <span class="pre">update_collection</span> <span class="pre">path/to/file</span> <span class="pre">&lt;parent&gt;</span>
+<span class="pre">`</span></code></p>
+<p>Where the parent is the collection above the one being adjusted. Generally this should not be required as the parent remains the same. If the parent is different as part of the adjustment you will also need to <code class="docutils literal notranslate"><span class="pre">delete</span></code> the existing collection, or alternatively reupload this collection with local changes then <code class="docutils literal notranslate"><span class="pre">migrate</span></code> the collection to a new parent (see below).</p>
+</section>
+<section id="delete-collections-items">
+<h2>Delete Collections/Items<a class="headerlink" href="#delete-collections-items" title="Link to this heading"></a></h2>
+<p>Deleting collections or items can be done via the <code class="docutils literal notranslate"><span class="pre">delete_collections</span></code> command, where any deletion requires the <code class="docutils literal notranslate"><span class="pre">-r</span></code> flag to actually REALLY delete anything. You may also choose to:
+- keep collections (<code class="docutils literal notranslate"><span class="pre">--keep_collections</span></code>) and only delete items
+- delete item aggregations (<code class="docutils literal notranslate"><span class="pre">--item_aggregations</span></code>) where i.e kerchunk/zarr items will not be deleted without this option.
+- delete the specified collection only (<code class="docutils literal notranslate"><span class="pre">--top_only</span></code>) but leave the collections underneath orphaned (not recommended)
+- delete the lowest collections (DRS’) only (<code class="docutils literal notranslate"><span class="pre">--lowest_only</span></code>) for a given MOLES/ECV collection.
+- delete collections at a certain depth with (<code class="docutils literal notranslate"><span class="pre">--delete</span> <span class="pre">depth</span> <span class="pre">&lt;INT&gt;</span></code>)</p>
+<p>For more complex deletions where deleting each item/collection is not feasible individually, custom scripts may be required to handle this case. See the section on the STAC shell which gives tips on how to build these applications.</p>
+</section>
 </section>
 
 

@@ -6,6 +6,11 @@ Using the CCI STAC Tools
 
     For all the commands below, you can access further help using the ``--help`` flag, to see the options available for each.
 
+Tools for STAC Collections
+==========================
+
+A STAC collection links to any number of child collections, and references an elasticsearch index with the same name as the collection that contains all the items of the collection. Collections can have no items and/or no child collections, but may still be a useful metadata representation given the specific dataset.
+
 Creating Collections
 --------------------
 
@@ -40,3 +45,18 @@ Deleting collections or items can be done via the ``delete_collections`` command
 
 For more complex deletions where deleting each item/collection is not feasible individually, custom scripts may be required to handle this case. See the section on the STAC shell which gives tips on how to build these applications.
 
+Migrate Collections
+-------------------
+
+To switch a collection from one parent to another, use the following:
+
+```
+$ migrate_collection <collection_name> <parent> --new_parent <new_parent>
+```
+
+Where the current parent and new parent of the collection are provided with CLI flags. Parent-child relations only impact those specific collections and do not impact collections further down the relationship chain (i.e moving a collection does not detach all of its children)
+
+Tools for STAC Items
+====================
+
+STAC items can be created using the ``opensearch-files`` index documents as a base for filling in the information. 

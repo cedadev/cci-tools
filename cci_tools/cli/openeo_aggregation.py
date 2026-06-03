@@ -37,7 +37,7 @@ def apply_openeo_reqs_for_item(
         "projects": {"opensearch": {"ecv": ecv, "datasetId": moles_uuid}},
     }
 
-    item_record, _, _ = process_record(
+    item_record, _ = process_record(
         min_dict_info,
         drs=did,
         splitter="aggregation",
@@ -55,7 +55,11 @@ def apply_openeo_reqs_for_item(
     }
 
     item_record["properties"]["proj:epsg"] = 4326
-    item_record["assets"]["aggregation"]["type"] = "application/vnd+zarr"
+    if engine == 'kerchunk':
+        item_record["assets"]["aggregation"]["type"] = "application/vnd.zarr+kerchunk"
+    else:
+        item_record["assets"]["aggregation"]["type"] = "application/vnd+zarr"
+        
     item_record["assets"]["aggregation"]["xarray:open_kwargs"] = {
         "engine": engine,
         "chunks": {},
@@ -150,16 +154,16 @@ def main(
 
     if dryrun:
         try:
-            with open("item.json", "w") as f:
+            with open(f"stac_collections/gen/openeo/{did}_item.json", "w") as f:
                 f.write(json.dumps(dict(item_record)))
         except TypeError as e:
             raise e
-            logger.error("Error: Unserializable")
-        logger.info("> Output to file: item")
+        
+        logger.info("> Writing OpenEO Item")
 
-        with open("collection.json", "w") as f:
+        with open(f"stac_collections/gen/openeo/{did}_collection.json", "w") as f:
             f.write(json.dumps(collection_record))
-        logger.info("> Output to file: collection")
+        logger.info("> Writing OpenEO Collection")
 
     else:
         logger.info(f"collection: {collection_record['id']}")

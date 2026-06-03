@@ -9,6 +9,7 @@ import os
 
 from cci_tools.readers.geotiff import read_geotiff
 from cci_tools.readers.xarray import scrape_xarray
+from cci_tools.stac.post_record import post_record
 from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API
 
 import logging
@@ -180,8 +181,8 @@ def handle_process_record(
         # Process OpenSearch record
         stac_dict, incomplete = process_record(
             record["_source"],
-            stac_api,
-            drs=drs,
+            drs,
+            stac_api=stac_api,
             splitter=splitter,
             start_time=start_time,
             end_time=end_time,
@@ -199,26 +200,31 @@ def handle_process_record(
 
     # Create directory for each CCI ECV/Project
     ecv_dir = stac_dict["collection"]
-    cci_stac_dir = f"{output_dir}/{ecv_dir}/"
-
-    if not os.path.isdir(cci_stac_dir):
-        try:
-            os.mkdir(cci_stac_dir)
-            logger.info(f"Created directory '{cci_stac_dir}' successfully")
-        except PermissionError as err:
-            raise err
-        except Exception as err:
-            if halt:
-                raise err
-            logger.error(f"An error occured '{err}'")
-            return "Failed:" + str(err)
-
-    # Write 'pretty print' STAC json file
     id = stac_dict["id"]
-    stac_file = f"{cci_stac_dir}stac_{id}.json"
+    if output_dir != 'UPLOAD': # UPLOAD directly to the STAC API
+        cci_stac_dir = f"{output_dir}/{ecv_dir}/"
 
-    with open(stac_file, "w", encoding="utf-8") as file:
-        json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+        if not os.path.isdir(cci_stac_dir):
+            try:
+                os.mkdir(cci_stac_dir)
+                logger.info(f"Created directory '{cci_stac_dir}' successfully")
+            except PermissionError as err:
+                raise err
+            except Exception as err:
+                if halt:
+                    raise err
+                logger.error(f"An error occured '{err}'")
+                return "Failed:" + str(err)
+
+        # Write 'pretty print' STAC json file
+        id = stac_dict["id"]
+        stac_file = f"{cci_stac_dir}stac_{id}.json"
+
+        with open(stac_file, "w", encoding="utf-8") as file:
+            json.dump(stac_dict, file, ensure_ascii=False, indent=2)
+    
+    else:
+        _ = post_record(stac_dict, {})
 
     if incomplete:
         return "Incomplete"
@@ -228,7 +234,8 @@ def handle_process_record(
 
 def process_record(
     es_all_dict: dict,
-    drs: str = "",
+    drs: str | None,
+    stac_api: str = STAC_API,
     splitter: dict = None,
     start_time: str = None,
     end_time: str = None,
@@ -376,19 +383,19 @@ def process_record(
             {
                 "rel": "self",
                 "type": "application/geo+json",
-                "href": f"{STAC_API}/collections/{drs}/items/{stac_id}",
+                "href": f"{stac_api}/collections/{drs}/items/{stac_id}",
             },
             {
                 "rel": "parent",
                 "type": "application/json",
-                "href": f"{STAC_API}/collections/{drs}",
+                "href": f"{stac_api}/collections/{drs}",
             },
             {
                 "rel": "collection",
                 "type": "application/json",
-                "href": f"{STAC_API}/collections/{drs}",
+                "href": f"{stac_api}/collections/{drs}",
             },
-            {"rel": "root", "type": "application/json", "href": STAC_API},
+            {"rel": "root", "type": "application/json", "href": stac_api},
             {"rel": "license", "type": "application/pdf", "href": url},
         ],
         "assets": {asset_id: {"href": f"{remote_location}/{fname}", "roles": ["data"]}},

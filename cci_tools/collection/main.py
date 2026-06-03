@@ -115,7 +115,7 @@ def remove_duplicate_links(old_links: list, allow_capitals: bool = True):
         "queryables": True,
     }
 
-    logger.info('Removing duplicate links.')
+    logger.debug('Removing duplicate links.')
     new_links = []
     children = []
     for link in old_links:

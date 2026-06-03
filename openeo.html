@@ -1,0 +1,159 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="./">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenEO Explained &mdash; CCI STAC Tools 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=01f34227"></script>
+      <script src="_static/doctools.js?v=9a2dae69"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+    <script src="_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Source Code for the CCI STAC Tools" href="source.html" />
+    <link rel="prev" title="Using the CCI STAC Tools" href="tools.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="index.html" class="icon icon-home">
+            CCI STAC Tools
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Sections</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="opensearch.html">Opensearch &amp; MOLES</a></li>
+<li class="toctree-l1"><a class="reference internal" href="collections.html">CCI STAC Collections Explained</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tools.html">Using The Tools</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">OpenEO Explained</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-openeo-datasets">Creating OpenEO datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#validating-the-collection">Validating the collection</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="source.html">Source Code</a></li>
+<li class="toctree-l1"><a class="reference internal" href="shell.html">The STAC Tools Shell</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">CCI STAC Tools</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="index.html" class="icon icon-home" aria-label="Home"></a></li>
+      <li class="breadcrumb-item active">OpenEO Explained</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="_sources/openeo.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="openeo-explained">
+<h1>OpenEO Explained<a class="headerlink" href="#openeo-explained" title="Link to this heading"></a></h1>
+<section id="background">
+<h2>Background<a class="headerlink" href="#background" title="Link to this heading"></a></h2>
+<p>OpenEO provides an API that allows users to connect to EO data/cloud backends in a simple and unified way. The API and process specifications are open-source and client/server implementations are also available openly. The OpenEO specification is used in production by so-called OpenEO cloud platforms like “OpenEO Platform” and the Copernicus Data Space Ecosystem (CDSE), where the cloud platforms provide an interface for the OpenEO API as well as a full cloud processing backend.</p>
+<p>The CCI Implementation is limited to local processing only, where the datasets are available in OpenEO compliant STAC format but no processing backend is directly available for CCI data. A fully developed processing backend is essential for using some of the core cloud-processing tools the OpenEO provides, including pre-defined or user-defined processes, interconnected tasks and so on. The idea is to effectively “order” the cloud processing tasks to act on specific datasets, by configuring requests via the API. To learn more about this see the main <cite>[OpenEO documentation](https://openeo.org/documentation/1.0/udfs.html#users)_</cite>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The CCI OpenEO datasets are available for local-only processing as a processing backend has not been implemented. This is mostly due to resource requirements on external or CEDA-maintained cloud. Instead, cci datasets can be accessed via the openeo API client, but require local processing of data. The data is still cloud-based, using a combination of COG, Zarr and Virtual Zarr datasets, but all processing is done locally.</p>
+</div>
+</section>
+<section id="creating-openeo-datasets">
+<h2>Creating OpenEO datasets<a class="headerlink" href="#creating-openeo-datasets" title="Link to this heading"></a></h2>
+<p>This can be accomplished for existing static aggregations (Kerchunk/Zarr) using the following:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ create_openeo &lt;path/to/file&gt;
+</pre></div>
+</div>
+<p>Additional options are available as follows:
+- <code class="docutils literal notranslate"><span class="pre">--did</span></code> - Dataset (DRS) ID to name this dataset (may be different to simply the name of the kerchunk/zarr file)
+- <code class="docutils literal notranslate"><span class="pre">--uuid</span></code> - Moles UUID to add to the metadata of the collection
+- <code class="docutils literal notranslate"><span class="pre">--ecv</span></code> - ECV to which this OpenEO dataset belongs.</p>
+<p>This will create an OpenEO compliant collection and adjoining item representing the static aggregation file. This will not be attached to the <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection automatically as it is a good idea to test that this collection is valid and works with the OpenEO local client - at which time it may be <code class="docutils literal notranslate"><span class="pre">migrated</span></code> (see other tools) under the <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection</p>
+</section>
+<section id="validating-the-collection">
+<h2>Validating the collection<a class="headerlink" href="#validating-the-collection" title="Link to this heading"></a></h2>
+<p>The following code snippet shows an example use case for the kerchunk/zarr OpenEO dataset:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">openeo.local</span><span class="w"> </span><span class="kn">import</span> <span class="n">LocalConnection</span>
+
+<span class="c1"># Setup the local connection</span>
+<span class="n">connection</span> <span class="o">=</span> <span class="n">LocalConnection</span><span class="p">(</span><span class="s1">&#39;./&#39;</span><span class="p">)</span>
+
+<span class="n">url</span> <span class="o">=</span> <span class="s1">&#39;https://api.stac.164.30.69.113.nip.io/collections/&lt;YOUR_COLLECTION_DID&gt;&#39;</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+
+<span class="c1"># You can select one or multiple bands/variables to load but at least one must be provided.</span>
+<span class="n">datacube</span> <span class="o">=</span> <span class="n">connection</span><span class="o">.</span><span class="n">load_stac</span><span class="p">(</span><span class="n">url</span><span class="o">=</span><span class="n">url</span><span class="p">,</span> <span class="n">bands</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;&lt;variable_from_your_dataset&gt;&#39;</span><span class="p">])</span>
+<span class="n">dataset</span> <span class="o">=</span> <span class="n">datacube</span><span class="o">.</span><span class="n">execute</span><span class="p">()</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">dataset</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>You may also want to run some kind of calculation example on the data to check there are no error messages immediately with the data.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="tools.html" class="btn btn-neutral float-left" title="Using the CCI STAC Tools" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="source.html" class="btn btn-neutral float-right" title="Source Code for the CCI STAC Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2022-2024, Centre of Environmental Data Analysis Developers,Scientific and Technical Facilities Council (STFC),UK Research and Innovation (UKRI). BSD 2-Clause License. All rights reserved.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

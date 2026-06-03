@@ -19,7 +19,7 @@
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Source Code for the CCI STAC Tools" href="source.html" />
+    <link rel="next" title="OpenEO Explained" href="openeo.html" />
     <link rel="prev" title="CCI STAC Collections" href="collections.html" /> 
 </head>
 
@@ -54,9 +54,14 @@
 <li class="toctree-l3"><a class="reference internal" href="#migrate-collections">Migrate Collections</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="#tools-for-stac-items">Tools for STAC Items</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#tools-for-stac-items">Tools for STAC Items</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#creating-items">Creating Items</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#posting-items">Posting Items</a></li>
 </ul>
 </li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="openeo.html">OpenEO Explained</a></li>
 <li class="toctree-l1"><a class="reference internal" href="source.html">Source Code</a></li>
 <li class="toctree-l1"><a class="reference internal" href="shell.html">The STAC Tools Shell</a></li>
 </ul>
@@ -97,17 +102,18 @@
 <section id="creating-collections">
 <h3>Creating Collections<a class="headerlink" href="#creating-collections" title="Link to this heading"></a></h3>
 <p>Create a new collection (ECV/MOLES/DRS level) using the command below:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">$</span> <span class="pre">new_collection</span> <span class="pre">&lt;parent&gt;</span> <span class="pre">&lt;child&gt;</span>
-<span class="pre">`</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ new_collection &lt;parent&gt; &lt;child&gt; --create moles
+</pre></div>
+</div>
 <p>Where the <code class="docutils literal notranslate"><span class="pre">parent</span></code> is the collection above the one you are trying to create (i.e for a new MOLES entry, the parent is the ECV), and the <code class="docutils literal notranslate"><span class="pre">child</span></code> is the name of the new collection. Note that this tool will create all sub-collections of your new collection that exist, by checking the <code class="docutils literal notranslate"><span class="pre">opensearch-collections</span></code> elasticsearch index, which is effectively a source of truth for published CCI datasets.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">--create</span></code> flag is also required, where the value must be one of <code class="docutils literal notranslate"><span class="pre">project</span></code>, <code class="docutils literal notranslate"><span class="pre">moles</span></code> or <code class="docutils literal notranslate"><span class="pre">drs</span></code> for whichever type of collection being created.</p>
 </section>
 <section id="update-collections">
 <h3>Update Collections<a class="headerlink" href="#update-collections" title="Link to this heading"></a></h3>
 <p>It is also possible to make a manual adjustment to CCI collections, where a specific field needs some correction. The index can be downloaded via wget/curl from the STAC index from <code class="docutils literal notranslate"><span class="pre">STAC_API/collections/COLLECTION</span></code>. Save the JSON file locally and make any changes necessary. The collection can then be reuploaded using:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">$</span> <span class="pre">update_collection</span> <span class="pre">path/to/file</span> <span class="pre">&lt;parent&gt;</span>
-<span class="pre">`</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ update_collection path/to/file &lt;parent&gt;
+</pre></div>
+</div>
 <p>Where the parent is the collection above the one being adjusted. Generally this should not be required as the parent remains the same. If the parent is different as part of the adjustment you will also need to <code class="docutils literal notranslate"><span class="pre">delete</span></code> the existing collection, or alternatively reupload this collection with local changes then <code class="docutils literal notranslate"><span class="pre">migrate</span></code> the collection to a new parent (see below).</p>
 </section>
 <section id="delete-collections-items">
@@ -123,15 +129,32 @@
 <section id="migrate-collections">
 <h3>Migrate Collections<a class="headerlink" href="#migrate-collections" title="Link to this heading"></a></h3>
 <p>To switch a collection from one parent to another, use the following:</p>
-<p><code class="docutils literal notranslate"><span class="pre">`</span>
-<span class="pre">$</span> <span class="pre">migrate_collection</span> <span class="pre">&lt;collection_name&gt;</span> <span class="pre">&lt;parent&gt;</span> <span class="pre">--new_parent</span> <span class="pre">&lt;new_parent&gt;</span>
-<span class="pre">`</span></code></p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ migrate_collection &lt;collection_name&gt; &lt;parent&gt; --new_parent &lt;new_parent&gt;
+</pre></div>
+</div>
 <p>Where the current parent and new parent of the collection are provided with CLI flags. Parent-child relations only impact those specific collections and do not impact collections further down the relationship chain (i.e moving a collection does not detach all of its children)</p>
 </section>
 </section>
 <section id="tools-for-stac-items">
 <h2>Tools for STAC Items<a class="headerlink" href="#tools-for-stac-items" title="Link to this heading"></a></h2>
 <p>STAC items can be created using the <code class="docutils literal notranslate"><span class="pre">opensearch-files</span></code> index documents as a base for filling in the information.</p>
+<section id="creating-items">
+<h3>Creating Items<a class="headerlink" href="#creating-items" title="Link to this heading"></a></h3>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ create_items &lt;CCI_DIRS&gt; &lt;OUTPUT_DIR&gt;
+</pre></div>
+</div>
+<p>The creation of STAC items currently enforces creating local copies first before they can then be uploaded. In the future this may be merged with the <code class="docutils literal notranslate"><span class="pre">post_items</span></code> tool. The <code class="docutils literal notranslate"><span class="pre">CCI_DIRS</span></code> option can be either the path to a directory containing files to be represented in STAC, or the path to a file which contains a list of directories of the same nature (in the case where specifying multiple directories rather than just the parent may be required).</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">OUTPUT_DIR</span></code> is where the STAC records will be placed - typically in subdirectories for each DRS identified across the set of files.</p>
+<p>Additional parameters that may/should be included in your command are listed below. Most of these are default values that only take precedent if the value cannot be sourced from the files themselves.
+- <code class="docutils literal notranslate"><span class="pre">--output_drs</span></code> - The DRS these files will belong to in STAC, if the files are not already tagged with the DRS.
+- <code class="docutils literal notranslate"><span class="pre">--exclusion</span></code> - Regex to exclude matching files from being included.
+- <code class="docutils literal notranslate"><span class="pre">--start_time/--end_time</span></code> - Temporal values to use in case there are none found from the file/opensearch record.
+- <code class="docutils literal notranslate"><span class="pre">--global</span></code> - Assume global coverage in case the spatial coverage cannot be determined.
+- <code class="docutils literal notranslate"><span class="pre">--halt</span></code> - Halt on errors, otherwise a summary is generated of the failures of any STAC item and the accompanying error message.</p>
+</section>
+<section id="posting-items">
+<h3>Posting Items<a class="headerlink" href="#posting-items" title="Link to this heading"></a></h3>
+</section>
 </section>
 </section>
 
@@ -140,7 +163,7 @@
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="collections.html" class="btn btn-neutral float-left" title="CCI STAC Collections" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="source.html" class="btn btn-neutral float-right" title="Source Code for the CCI STAC Tools" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="openeo.html" class="btn btn-neutral float-right" title="OpenEO Explained" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

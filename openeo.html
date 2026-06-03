@@ -49,7 +49,8 @@
 <li class="toctree-l1"><a class="reference internal" href="tools.html">Using The Tools</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">OpenEO Explained</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#background">Background</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#creating-openeo-datasets">Creating OpenEO datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-openeo-datasets-aggregations">Creating OpenEO datasets (Aggregations)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#creating-openeo-datasets-tiled">Creating OpenEO datasets (Tiled)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#validating-the-collection">Validating the collection</a></li>
 </ul>
 </li>
@@ -92,8 +93,8 @@
 <p>The CCI OpenEO datasets are available for local-only processing as a processing backend has not been implemented. This is mostly due to resource requirements on external or CEDA-maintained cloud. Instead, cci datasets can be accessed via the openeo API client, but require local processing of data. The data is still cloud-based, using a combination of COG, Zarr and Virtual Zarr datasets, but all processing is done locally.</p>
 </div>
 </section>
-<section id="creating-openeo-datasets">
-<h2>Creating OpenEO datasets<a class="headerlink" href="#creating-openeo-datasets" title="Link to this heading"></a></h2>
+<section id="creating-openeo-datasets-aggregations">
+<h2>Creating OpenEO datasets (Aggregations)<a class="headerlink" href="#creating-openeo-datasets-aggregations" title="Link to this heading"></a></h2>
 <p>This can be accomplished for existing static aggregations (Kerchunk/Zarr) using the following:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ create_openeo &lt;path/to/file&gt;
 </pre></div>
@@ -103,6 +104,12 @@
 - <code class="docutils literal notranslate"><span class="pre">--uuid</span></code> - Moles UUID to add to the metadata of the collection
 - <code class="docutils literal notranslate"><span class="pre">--ecv</span></code> - ECV to which this OpenEO dataset belongs.</p>
 <p>This will create an OpenEO compliant collection and adjoining item representing the static aggregation file. This will not be attached to the <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection automatically as it is a good idea to test that this collection is valid and works with the OpenEO local client - at which time it may be <code class="docutils literal notranslate"><span class="pre">migrated</span></code> (see other tools) under the <code class="docutils literal notranslate"><span class="pre">cci_openeo</span></code> collection</p>
+</section>
+<section id="creating-openeo-datasets-tiled">
+<h2>Creating OpenEO datasets (Tiled)<a class="headerlink" href="#creating-openeo-datasets-tiled" title="Link to this heading"></a></h2>
+<p>The process for creating an OpenEO dataset consisting of many tiles (typically GeoTiff) uses the <code class="docutils literal notranslate"><span class="pre">create_items</span></code> command with some changes for OpenEO:
+- Uses splitters and input files to combine multiple files into the same item as different assets.</p>
+<p>This section is still under development.</p>
 </section>
 <section id="validating-the-collection">
 <h2>Validating the collection<a class="headerlink" href="#validating-the-collection" title="Link to this heading"></a></h2>

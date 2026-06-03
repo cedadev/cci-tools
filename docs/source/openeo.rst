@@ -13,8 +13,8 @@ The CCI Implementation is limited to local processing only, where the datasets a
 
     The CCI OpenEO datasets are available for local-only processing as a processing backend has not been implemented. This is mostly due to resource requirements on external or CEDA-maintained cloud. Instead, cci datasets can be accessed via the openeo API client, but require local processing of data. The data is still cloud-based, using a combination of COG, Zarr and Virtual Zarr datasets, but all processing is done locally.
 
-Creating OpenEO datasets
-------------------------
+Creating OpenEO datasets (Aggregations)
+---------------------------------------
 
 This can be accomplished for existing static aggregations (Kerchunk/Zarr) using the following:
 
@@ -28,6 +28,15 @@ Additional options are available as follows:
 - ``--ecv`` - ECV to which this OpenEO dataset belongs.
 
 This will create an OpenEO compliant collection and adjoining item representing the static aggregation file. This will not be attached to the ``cci_openeo`` collection automatically as it is a good idea to test that this collection is valid and works with the OpenEO local client - at which time it may be ``migrated`` (see other tools) under the ``cci_openeo`` collection
+
+Creating OpenEO datasets (Tiled)
+--------------------------------
+
+The process for creating an OpenEO dataset consisting of many tiles (typically GeoTiff) uses the ``create_items`` command with some changes for OpenEO:
+- Uses splitters and input files to combine multiple files into the same item as different assets.
+
+This section is still under development.
+
 
 Validating the collection
 -------------------------

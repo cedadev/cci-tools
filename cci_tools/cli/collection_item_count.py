@@ -12,6 +12,8 @@ logger.propagate = False
 @click.argument("collection")
 # Also count aggregated items
 @click.option("--aggs", "aggregations", required=False, is_flag=True)
+# Return list of items found
+@click.option("--return_items", "return_items", required=False, is_flag=True)
 # Just check if the collection contains any items
 @click.option("--check", "quick_check", required=False, is_flag=True)
 # Just show the count for collections at X depth
@@ -22,6 +24,7 @@ def main(
     collection: str,
     quick_count: bool = False,
     quick_check: bool = False,
+    return_items: bool = False,
     aggregations: bool = False,
     depth: int = 0,
     count_all: bool = False,
@@ -37,6 +40,7 @@ def main(
         collection,
         quick_count=quick_count,
         quick_check=quick_check,
+        return_items=return_items,
         aggregations=aggregations,
         depth=depth,
         count_all=count_all,
@@ -47,6 +51,7 @@ def collection_item_count(
     collection,
     quick_count=False,
     quick_check=False,
+    return_items=False,
     aggregations=False,
     depth=0,
     count_all=False,
@@ -57,6 +62,7 @@ def collection_item_count(
         item_aggregations=aggregations,
         depth=depth,
         quick_check=quick_check,
+        return_items=return_items,
         count_all=count_all,
     )
 

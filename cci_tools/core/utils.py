@@ -6,6 +6,7 @@ import httpx
 import boto3
 import json
 import os
+import requests
 from elasticsearch import Elasticsearch
 from obs import ObsClient
 
@@ -145,6 +146,11 @@ COLLECTION_TEMPLATE = {
     "providers": [],
     "summaries": None,
 }
+
+
+def get_moles_data(uuid):
+
+    return requests.get(f'https://catalogue.ceda.ac.uk/api/v3/observations/?uuid={uuid}').json()['results'][0]
 
 
 def get_dir_query(directory):

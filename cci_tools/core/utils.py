@@ -219,6 +219,53 @@ def count_items(collection, item_aggregations=False, quick_check=False):
 
     return response["count"]
 
+def get_items(
+    collection,
+    item_aggregations=None,
+    quick_check=False,
+    return_items=False,
+    page_size=1000
+):
+    body = get_item_query(count_aggregations=item_aggregations)
+
+    # Default behaviour: return only the count
+    if not return_items:
+        response = es_client.count(
+            index=f"items_{collection}",
+            body=body
+        )
+        
+        if quick_check and response["count"] > 0:
+            return True
+
+        return response["count"]
+
+    # Otherwise: return ALL matching items
+    # search_after requires a stable sort
+    body["sort"] = [{"id": "asc"}]
+
+    all_items = []
+    search_after = None
+
+    while True:
+        if search_after:
+            body["search_after"] = search_after
+
+        response = es_client.search(
+            index=f"items_{collection}",
+            body=body
+            )
+
+        hits = response["hits"]["hits"]
+        if not hits:
+            break
+
+        all_items.extend(hit["_source"]["id"] for hit in hits)
+
+        # Prepare next page
+        search_after = hits[-1]["sort"]
+
+    return all_items
 
 def recursive_find(
     collection,
@@ -227,6 +274,7 @@ def recursive_find(
     depth=0,
     current_depth=1,
     quick_check=False,
+    return_items=False,
     count_all=False,
 ):
     """
@@ -246,11 +294,18 @@ def recursive_find(
     collection_name = collection.split("/")[-1]
 
     try:
-        item_count = count_items(
+        item_count = get_items(
             collection_name,
             item_aggregations=item_aggregations,
             quick_check=quick_check,
+            return_items=return_items,
+            page_size=1000
         )
+#        item_count = count_items(
+#            collection_name,
+#            item_aggregations=item_aggregations,
+#            quick_check=quick_check,
+#        )
     except Exception as e:
         raise e
 
@@ -265,6 +320,7 @@ def recursive_find(
                 depth=depth,
                 current_depth=current_depth + 1,
                 quick_check=quick_check,
+                return_items=return_items,
                 count_all=count_all,
             )
             if exists:
@@ -282,6 +338,10 @@ def recursive_find(
         print(f' > {collection.split("/")[-1]} Missing: {missing}')
 
     if depth == current_depth or depth == 0:
-        print(f"{collection.split('/')[-1]}: {item_count}")
+        if isinstance(item_count, list):
+            for item in item_count:
+                print(item)
+        else:
+            print(f"{collection.split('/')[-1]}: {item_count}")
 
     return item_count, collection_summary

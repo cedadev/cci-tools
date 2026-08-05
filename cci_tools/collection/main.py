@@ -118,8 +118,8 @@ def get_project_labels_from_opensearch():
     return sorted(list(set(exists)))
 
 
-def set_field(default_or_existing_value, new_value, exists: bool = False):
-    if exists and bool(default_or_existing_value):
+def set_field(default_or_existing_value, new_value, exists: bool = False, overwrite: bool = False):
+    if exists and bool(default_or_existing_value) and not overwrite:
         # If exists and has a value already
         return default_or_existing_value
     else:
@@ -207,13 +207,13 @@ def add_drs_collection(
     else:
         title = id
 
-    drs_stac["id"] = set_field(drs_stac.get("id"), id.lower(), exists=exists)
+    drs_stac["id"] = set_field(drs_stac.get("id"), id.lower(), exists=exists, overwrite=overwrite)
     drs_stac["description"] = set_field(
-        drs_stac.get("description"), drs_reference["description_url"], exists=exists
+        drs_stac.get("description"), parent['description'], exists=exists, overwrite=overwrite
     )
-    drs_stac["title"] = set_field(drs_stac.get("title"), title, exists=exists)
+    drs_stac["title"] = set_field(drs_stac.get("title"), title, exists=exists, overwrite=overwrite)
 
-    drs_stac["extent"] = set_field(drs_stac.get("extent"), extent, exists=exists)
+    drs_stac["extent"] = set_field(drs_stac.get("extent"), extent, exists=exists, overwrite=overwrite)
 
     drs_stac["keywords"] = list(
         set(drs_stac.get("keywords", []) + parent.get("keywords", []) + id.split("."))
@@ -226,6 +226,9 @@ def add_drs_collection(
             "href": f"https://catalogue.ceda.ac.uk/uuid/{uuid or parent['id']}",
         },
     )
+
+    drs_stac['stac_extensions'] = ["https://stac-extensions.github.io/scientific/v1.0.0/schema.json"]
+    drs_stac['sci:doi'] = f'10.5285/{uuid}'
 
     drs_stac["links"] = remove_duplicate_links(drs_stac["links"])
 
@@ -317,12 +320,24 @@ def add_uuid_collection(
     else:
         moles_stac = copy.deepcopy(COLLECTION_TEMPLATE)
 
+    moles_info = requests.get(
+        f"https://catalogue.ceda.ac.uk/api/v3/observations/?discoveryKeywords__name=ESACCI&uuid={collection_id}"
+    ).json()['results'][0]
+
+    description = set_field(
+        moles_stac.get("description"),
+        abstract
+        + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
+        exists=exists, overwrite=overwrite,
+    )
+
     moles_parent = {
-        "id": set_field(moles_stac.get("id"), collection_id, exists=exists),
+        "id": set_field(moles_stac.get("id"), collection_id, exists=exists, overwrite=overwrite),
         "links": [],
         "title": set_field(
-            moles_stac.get("title"), es_coll_data.get("title"), exists=exists
+            moles_stac.get("title"), es_coll_data.get("title"), exists=exists, overwrite=overwrite
         ),
+        "description": description
         "extent": moles_stac.get("extent"),
     }
 
@@ -348,18 +363,8 @@ def add_uuid_collection(
 
     moles_stac.update(moles_parent)
 
-    moles_info = requests.get(
-        f"https://catalogue.ceda.ac.uk/api/v3/observations/?discoveryKeywords__name=ESACCI&uuid={collection_id}"
-    ).json()
-
-    abstract = moles_info["results"][0]["abstract"]
-
-    moles_stac["description"] = set_field(
-        moles_stac.get("description"),
-        abstract
-        + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
-        exists=exists,
-    )
+    moles_stac['stac_extensions'] = ["https://stac-extensions.github.io/scientific/v1.0.0/schema.json"]
+    moles_stac['sci:doi'] = f'10.5285/{uuid}'
 
     start = (es_coll_data.get("start_date", None) or "1970-01-01").split("T")[0]
     end = (es_coll_data.get("end_date", None) or "2025-12-31").split("T")[0]
@@ -377,7 +382,7 @@ def add_uuid_collection(
             "spatial": {"bbox": [[-180, -90, 180, 90]]},
             "temporal": {"interval": [temporal_coverage]},
         },
-        exists=exists,
+        exists=exists, overwrite=overwrite,
     )
 
     moles_stac["links"].append(
@@ -511,23 +516,23 @@ def create_project_collection(
 
     project_coll["links"] = project_coll.get("links", []) + child_coll.get("links", [])
 
-    project_coll["id"] = set_field(project_coll.get("id"), id, exists=exists)
-    project_coll["title"] = set_field(project_coll.get("title"), project, exists=exists)
+    project_coll["id"] = set_field(project_coll.get("id"), id, exists=exists, overwrite=overwrite)
+    project_coll["title"] = set_field(project_coll.get("title"), project, exists=exists, overwrite=overwrite)
 
     project_coll["description"] = set_field(
-        project_coll.get("description"), moles_reference.get("abstract"), exists=exists
+        project_coll.get("description"), moles_reference.get("abstract"), exists=exists, overwrite=overwrite
     )
 
     # Temporal coverage of a whole ecv?
     temporal_coverage = set_field(
         project_coll.get("extent", {}).get("temporal_coverage"),
         moles_reference.get("temporal"),
-        exists=exists,
+        exists=exists, overwrite=overwrite,
     )
 
     ## Other metadata (summaries, keywords)
     project_coll["summaries"] = set_field(
-        project_coll.get("summaries"), {"project": [project]}, exists=exists
+        project_coll.get("summaries"), {"project": [project]}, exists=exists, overwrite=overwrite
     )
 
     project_coll["keywords"] = list(

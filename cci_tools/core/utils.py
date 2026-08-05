@@ -129,7 +129,7 @@ COLLECTION_TEMPLATE = {
     "stac_extensions": [],
     "title": None,
     "type": "Collection",
-    "license": "other",
+    "licence": "other",
     "links": [{"rel": "root", "type": "application/json", "href": "STAC_API"}],
     "assets": {
         "thumbnail": {
@@ -144,8 +144,29 @@ COLLECTION_TEMPLATE = {
     },
     "keywords": [],
     "providers": [],
-    "summaries": None,
+    "summaries": [],
 }
+
+
+def get_licence(ecv: str):
+    """
+    Construct URL to the relevant data licence on the CEDA artefacts server
+    """
+    for licence in [
+        "_terms_and_conditions_v2.pdf",
+        "_terms_and_conditions.pdf",
+        ".pdf",
+    ]:
+        r = requests.get(
+            f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{licence}"
+        )
+        if r.status_code == 200:
+            break
+    url = (
+        f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{licence}"
+    )
+
+    return url
 
 
 def get_moles_data(uuid):

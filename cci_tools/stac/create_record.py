@@ -10,7 +10,7 @@ import os
 from cci_tools.readers.geotiff import read_geotiff
 from cci_tools.readers.xarray import scrape_xarray
 from cci_tools.stac.post_record import post_record
-from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API, es_client, get_file_query, get_moles_data
+from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API, es_client, get_file_query, get_moles_data, get_licence
 ACCEPTABLE_RESPONSES = ["OK", "Excluded"]
 
 import logging
@@ -99,27 +99,6 @@ def extract_collection(es_all_dict: dict):
             raise ValueError("Handling of multi-ecv record not supported")
 
     return ecv
-
-
-def get_licence(ecv: str):
-    """
-    Construct URL to the relevant data license on the CEDA artefacts server
-    """
-    for license in [
-        "_terms_and_conditions_v2.pdf",
-        "_terms_and_conditions.pdf",
-        ".pdf",
-    ]:
-        r = requests.get(
-            f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{license}"
-        )
-        if r.status_code == 200:
-            break
-    url = (
-        f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{license}"
-    )
-
-    return url
 
 
 def extract_opensearch(es_all_dict: dict):
@@ -342,8 +321,8 @@ def process_record(
     # Extract collection (ECV/project)
     ecv = extract_collection(es_all_dict)
 
-    # Construct url to license on the CEDA archive assets server
-    license_url = get_licence(ecv)
+    # Construct url to licence on the CEDA archive assets server
+    licence_url = get_licence(ecv)
 
     # Extract dataset ID (UUID)
     uuid = es_all_dict["projects"]["opensearch"].get("datasetId")
@@ -473,9 +452,9 @@ def process_record(
     all_properties = {
         "datetime": None,
         "title": moles_data['title']
-        "description": moles_data['abstract'] + '\r\n\n\n See CEDA Catalogue Record for citation details.'
+        "description": moles_data['abstract'] + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
         **core_properties,
-        "license": "other", # "CC-BY-4.0" not allowed
+        "licence": "other", # "CC-BY-4.0" not allowed
         **cci_properties,
         **ceda_properties,
         **processing_properties,
@@ -518,7 +497,7 @@ def process_record(
                 "href": f"https://catalogue.ceda.ac.uk/uuid/{uuid}"
             }
             {"rel": "root", "type": "application/json", "href": stac_api},
-            {"rel": "license", "type": "application/pdf", "href": license_url},
+            {"rel": "licence", "type": "application/pdf", "href": licence_url},
         ],
         "assets": {asset_id: {"href": f"{remote_location}/{fname}", "roles": ["data"]}},
     }

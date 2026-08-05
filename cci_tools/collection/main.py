@@ -45,6 +45,34 @@ def get_project_kwargs():
 
     return {"temporal": temporal, "abstract": description}
 
+def confine_components(extent, start_datetime, end_datetime, bbox):
+
+    start_datetime = sorted([extent["temporal"]["interval"][0][0], start_datetime])[0]
+    end_datetime = sorted([extent["temporal"]["interval"][0][1], end_datetime])[1]
+
+    bbox_w = min(bbox[0][0], extent["spatial"]["bbox"][0][0])
+    bbox_e = max(bbox[0][2], extent["spatial"]["bbox"][0][2])
+
+    bbox_n = max(bbox[0][3], extent["spatial"]["bbox"][0][3])
+    bbox_s = min(bbox[0][1], extent["spatial"]["bbox"][0][1])
+
+    if bbox_w < -180 or bbox_e > 180 or bbox_n > 90 or bbox_s < -90:
+        print(extent)
+        raise ValueError('Super-global dataset not supported')
+
+    return (
+        start_datetime,
+        end_datetime,
+        [
+            [
+                float(f"{bbox_w:.2f}"),
+                float(f"{bbox_s:.2f}"),
+                float(f"{bbox_e:.2f}"),
+                float(f"{bbox_n:.2f}"),
+            ]
+        ],
+    )
+
 
 def get_project_labels_from_opensearch():
 
@@ -91,7 +119,7 @@ def get_project_labels_from_opensearch():
 
 
 def set_field(default_or_existing_value, new_value, exists: bool = False):
-    if exists and default_or_existing_value:
+    if exists and bool(default_or_existing_value):
         # If exists and has a value already
         return default_or_existing_value
     else:
@@ -329,8 +357,7 @@ def add_uuid_collection(
     moles_stac["description"] = set_field(
         moles_stac.get("description"),
         abstract
-        + "\n\n"
-        + f'https://catalogue.ceda.ac.uk/uuid/{es_coll_data["collection_id"]}',
+        + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
         exists=exists,
     )
 
@@ -527,6 +554,9 @@ def create_project_collection(
     )
     project_coll["links"].append(
         {"rel": "root", "type": "application/json", "href": f"{STAC_API}"}
+    )
+    project_coll["links"].append(
+        {"rel": "licence", "type": "application/pdf", "href": get_licence(project)}
     )
 
     project_coll["links"] = remove_duplicate_links(project_coll["links"])

@@ -7,8 +7,9 @@ import click
 import xarray as xr
 import json
 from typing import Union
+import os
 
-from cci_tools.stac.create_record import process_record
+from cci_tools.stac.create_record import process_record, single_opensearch_record
 from cci_tools.collection.openeo import openeo_collection
 from cci_tools.core.utils import STAC_API, client, auth
 import logging
@@ -73,6 +74,7 @@ def apply_openeo_reqs_for_item(
 @click.option("--did", "did", required=False)
 @click.option("--uuid", "moles_uuid", required=False)
 @click.option("--ecv", "ecv", required=False)
+@click.option("--tiled", "tiled", is_flag=True, required=False)
 @click.option("-d", "dryrun", is_flag=True, required=False)
 @click.option("-v", "--verbose", count=True)
 def main(
@@ -80,6 +82,7 @@ def main(
     did: str,
     moles_uuid: str,
     ecv: str,
+    tiled: bool = False,
     dryrun: bool = False,
     verbose: int = 0,
 ):
@@ -92,21 +95,54 @@ def main(
     # Build the item/asset
     # Build the collection (summaries)
 
-    did = did or ".".join(endpoint.split("/")[-1].split(".")[:-1])
-    if ".json" in endpoint:
-        engine = "kerchunk"
-    elif ".nca" in endpoint:
-        engine = "CFA"
-    elif ".zarr" in endpoint:
-        engine = "zarr"
+    if tiled:
+        if did is None:
+            raise ValueError('Dataset "DID" must be provided for tiled data')
+        
+        if not os.path.isfile(endpoint):
+            raise ValueError(f'Endpoint config (JSON) must be provided - {endpoint} not found')
+        
+        with open(endpoint) as f:
+            config = json.load(f)
+
+        files = config['files']
+        if files.endswith(".txt"):
+            with open(files) as f:
+                fileset = [r.strip() for r in f.readlines()]
+        else:
+            fileset = [files]
+
+        for file in fileset:
+            err = single_opensearch_record(
+                file,
+                config['output_dir'],
+                exclusion=config['exclusion'],
+                drs=config['output_drs'],
+                splitter=config['splitter'],
+                start_time=config.get('start_time'),
+                end_time=config.get('end_time'),
+                halt=True
+            )
+
+            if err:
+                raise ValueError(err)
+
     else:
-        raise ValueError("Aggregation extension is not known")
+        did = did or ".".join(endpoint.split("/")[-1].split(".")[:-1])
+        if ".json" in endpoint:
+            engine = "kerchunk"
+        elif ".nca" in endpoint:
+            engine = "CFA"
+        elif ".zarr" in endpoint:
+            engine = "zarr"
+        else:
+            raise ValueError("Aggregation extension is not known")
 
-    license = "other"  # xarray license not valid stac
+        license = "other"  # xarray license not valid stac
 
-    item_record = apply_openeo_reqs_for_item(
-        endpoint, did, ecv, moles_uuid, engine, license=license
-    )
+        item_record = apply_openeo_reqs_for_item(
+            endpoint, did, ecv, moles_uuid, engine, license=license
+        )
 
     ds = xr.open_dataset(endpoint, engine=engine)
     summary_bands = {}

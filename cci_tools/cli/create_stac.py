@@ -7,7 +7,7 @@ from cci_tools.core.utils import (
     get_file_query,
     get_dir_query,
 )
-from cci_tools.stac.create_record import handle_process_record
+from cci_tools.stac.create_record import single_opensearch_record
 import logging
 from cci_tools.core.utils import logstream, set_verbose
 
@@ -129,20 +129,9 @@ def main(
                 fileset = [cci_dir]
 
             for file in fileset:
-                body = get_file_query(file)
-                hits = es_client.search(index="opensearch-files", body=body)["hits"][
-                    "hits"
-                ]
 
-                if len(hits) == 0:
-                    print("")
-                    print(f"{file}: Not found in Opensearch")
-                    count_fail += 1
-                    continue
-
-                record = hits[0]
-                response = handle_process_record(
-                    record,
+                err = single_opensearch_record(
+                    file,
                     output_dir,
                     exclusion=exclusion,
                     drs=output_drs,
@@ -153,8 +142,8 @@ def main(
                     **kwargs,
                 )
 
-                if response not in ACCEPTABLE_RESPONSES:
-                    failed_list.append(f"{file}:{response}")
+                if err:
+                    failed_list.append(err)
                     count_fail += 1
                 else:
                     count_success += 1

@@ -10,7 +10,8 @@ import os
 from cci_tools.readers.geotiff import read_geotiff
 from cci_tools.readers.xarray import scrape_xarray
 from cci_tools.stac.post_record import post_record
-from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API
+from cci_tools.core.utils import ALLOWED_OPENSEARCH_EXTS, STAC_API, es_client, get_file_query, get_moles_data
+ACCEPTABLE_RESPONSES = ["OK", "Excluded"]
 
 import logging
 from cci_tools.core.utils import logstream
@@ -19,6 +20,61 @@ logger = logging.getLogger(__name__)
 logger.addHandler(logstream)
 logger.propagate = False
 
+
+def get_providers(institutions: list | str):
+
+    providers = [
+        {
+            "name": "European Space Agency (ESA)",
+            "roles": ["funder", "licensor"],
+            "url": "https://www.esa.int"
+        }      
+    ]
+
+    if institutions is None:
+        return providers
+
+    if isinstance(institutions: str):
+        institutions = [institutions]
+
+    for institution in institutions:
+        ROR_api = "https://api.ror.org/v2/organizations?query=" + "%20".join(
+            institution.lower().split(" ")
+        )
+
+        r = requests.get(ROR_api)
+        if int(r.status_code) >= 300:
+            print("Specific institute not found in ROR API")
+            return providers
+
+        resp = r.json()
+        found = False
+        inst_count = 0
+        while not found and inst_count < 10:
+            names = resp["items"][inst_count]["names"]
+            for entry in names:
+                if entry["value"].lower() == institute.lower():
+                    found = True
+                    break
+
+            if not found:
+                inst_count += 1
+
+        if found:
+
+            website = None
+            for l in resp['items'][inst_count]['links']:
+                if l['type'] == 'website':
+                    website = l['value']
+
+            if website is not None:
+                providers = [
+                    {
+                        "name": institute,
+                        "roles": ["producer"],
+                        "url": website
+                }] + providers
+    return providers
 
 def extract_id(es_all_dict: dict):
     """
@@ -157,6 +213,33 @@ def extract_opensearch(es_all_dict: dict):
     return stac_info, properties
 
 
+def single_opensearch_record(
+        file,
+        output_dir,
+        **kwargs) -> bool:
+    
+    body = get_file_query(file)
+    hits = es_client.search(index="opensearch-files", body=body)["hits"][
+        "hits"
+    ]
+
+    if len(hits) == 0:
+        return f"{file}: Not found in Opensearch"
+        
+
+    record = hits[0]
+    response = handle_process_record(
+        record,
+        output_dir,
+        **kwargs,
+    )
+
+    if response not in ACCEPTABLE_RESPONSES:
+        return f"{file}:{response}"
+    else:
+        return
+
+
 def handle_process_record(
     record: dict,
     output_dir: str,
@@ -252,20 +335,33 @@ def process_record(
 
     # Extract file path
     location = es_all_dict["info"].get("directory")
+    remote_location = location
+    if "https://" not in remote_location:
+        remote_location = "https://dap.ceda.ac.uk" + remote_location
 
     # Extract collection (ECV/project)
     ecv = extract_collection(es_all_dict)
 
     # Construct url to license on the CEDA archive assets server
-    url = get_licence(ecv)
+    license_url = get_licence(ecv)
 
     # Extract dataset ID (UUID)
     uuid = es_all_dict["projects"]["opensearch"].get("datasetId")
+
+    # Now using the processing schema only - may also add OpenEO as needed
+    exts = [
+        "https://stac-extensions.github.io/processing/v1.2.0/schema.json",
+    ]
+
+    ## File Metadata Extraction
 
     fmt_override = fmt_override or ""
     if "xarray" in fmt_override:
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
         properties = stac_info["properties"]
+
+        # Xarray scraping includes projection information
+        exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
     elif file_ext in ALLOWED_OPENSEARCH_EXTS:
         # Information can only be extracted from OpenSearch record
@@ -297,6 +393,9 @@ def process_record(
             interval=interval,
         )
 
+        # Geotiff scraping includes projection information
+        exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
+
         incomplete = stac_info["properties"].get("incomplete", False)
 
         if not isinstance(stac_info, dict):
@@ -309,15 +408,12 @@ def process_record(
         logger.error(f"File format {file_ext} not recognised!")
         return {"error": "FormatUnrecognised"}, False
 
-    exts = [
-        "https://stac-extensions.github.io/projection/v1.1.0/schema.json",
-        "https://stac-extensions.github.io/classification/v1.0.0/schema.json",
-    ]
-
+    ## Asset/ID Extraction
     asset_id = stac_info["format"]
-    drs = drs or stac_info.get("drs", None) or f"{uuid}-main"
-    stac_id = file_id + f"-{stac_info['format']}"
+    drs      = drs or stac_info.get("drs", None) or f"{uuid}-main"
+    stac_id  = file_id + f"-{stac_info['format']}"
 
+    ## Handling OpenEO Differences
     if openeo:
         drs = drs + ".openeo"
         stac_id = file_id + ".openeo"
@@ -334,32 +430,60 @@ def process_record(
             if asset_id is None:
                 logger.warning("No splitting identified for this item")
 
-    remote_location = location
-    if "https://" not in remote_location:
-        remote_location = "https://dap.ceda.ac.uk" + remote_location
-
-    if uuid is not None:
-        properties["opensearch_url"] = (
-            f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}",
-        )
-        properties["esa_url"] = (f"https://climate.esa.int/en/catalogue/{uuid}/",)
-
-    vals = ["start_datetime", "end_datetime", "version", "file_type", "platforms"]
-
+    ## Core Properties Extraction
+    vals = ["start_datetime", "end_datetime", "file_type"]
+    core_properties = {}
     for v in vals:
         if not properties.get(v, None):
             if v == "file_type":
-                properties[v] = stac_info["format"]
+                core_properties[v] = stac_info["format"]
             else:
-                properties[v] = stac_info[v]
+                core_properties[v] = stac_info[v]
 
-    top_properties = {}
-    for v in vals:
-        temp_dict = properties.pop(v, None)
-        if temp_dict is not None:
-            top_properties[v] = temp_dict
+    ## Version Extraction
+    version = stac_info.get('version',None)
+    numericVersion = version
+    if version.startswith('v'):
+        numericVersion = version[1:]
 
-    # Create a dictionary of the required STAC output
+    ## Handling Different Properties
+    cci_properties = {
+        'cci:project':     es_all_dict["projects"]["opensearch"].get("project",[None])[0], # Always take the string value for this
+        'cci:collections': [ecv, uuid, drs]
+        'cci:esa_url':     f"https://climate.esa.int/en/catalogue/{uuid}/"
+        'cci:dataType':    es_all_dict["projects"]["opensearch"].get('dataType',None)
+        'cci:sensor':      es_all_dict["projects"]["opensearch"].get('sensor',None)
+        'cci:platform':    stac_info.get('platforms',None),
+        'cci:frequency':   es_all_dict["projects"]["opensearch"].get("frequency",None),
+        'cci:product':     es_all_dict["projects"]["opensearch"].get("product",None),
+        'cci:productVersion': version
+        'cci:institute':   es_all_dict["projects"]["opensearch"].get('institute',None)
+    }
+    ceda_properties = {
+        'ceda:aggregation': False,
+        'ceda:opensearch_url': f"https://archive.opensearch.ceda.ac.uk/opensearch/description.xml?parentIdentifier={uuid}"
+    }
+    processing_properties = {
+        'processing:version': numericVersion # minus 'v'
+        'processing:level': es_all_dict["projects"]["opensearch"].get('processingLevel')
+    }
+
+    moles_data = get_moles_data(uuid)
+
+    all_properties = {
+        "datetime": None,
+        "title": moles_data['title']
+        "description": moles_data['abstract'] + '\r\n\n\n See CEDA Catalogue Record for citation details.'
+        **core_properties,
+        "license": "other", # "CC-BY-4.0" not allowed
+        **cci_properties,
+        **ceda_properties,
+        **processing_properties,
+        providers: get_providers(es_all_dict["projects"]["opensearch"].get('institute'))
+        **properties, # Any other properties from alternative sources
+    }
+
+    ## Create STAC Dictionary
     stac_dict = {
         "type": "Feature",
         "stac_version": "1.1.0",
@@ -371,14 +495,7 @@ def process_record(
             "coordinates": stac_info["coordinates"],
         },
         "bbox": stac_info["bbox"],
-        "properties": {
-            "datetime": None,
-            **top_properties,
-            "license": "other",
-            "aggregation": False,
-            "collections": [ecv, uuid, drs],
-            **properties,
-        },
+        "properties": all_properties
         "links": [
             {
                 "rel": "self",
@@ -395,8 +512,13 @@ def process_record(
                 "type": "application/json",
                 "href": f"{stac_api}/collections/{drs}",
             },
+            {
+                "rel": "via",
+                "type": "text/html",
+                "href": f"https://catalogue.ceda.ac.uk/uuid/{uuid}"
+            }
             {"rel": "root", "type": "application/json", "href": stac_api},
-            {"rel": "license", "type": "application/pdf", "href": url},
+            {"rel": "license", "type": "application/pdf", "href": license_url},
         ],
         "assets": {asset_id: {"href": f"{remote_location}/{fname}", "roles": ["data"]}},
     }

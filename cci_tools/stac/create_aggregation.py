@@ -210,6 +210,7 @@ def get_parent_collection(uuid, drs_id):
 
     return collection
 
+
 def handle_collection_aggregation(endpoint: str, moles_uuid: str, drs_id: str | None, engine: str = 'kerchunk'):
     """
     Handle updating the parent collection properties and post the item

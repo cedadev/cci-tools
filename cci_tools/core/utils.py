@@ -70,6 +70,108 @@ auth = OAuth2ClientCredentials(
 )
 
 
+def get_providers(institutions: list | str):
+
+    providers = [
+        {
+            "name": "European Space Agency (ESA)",
+            "roles": ["funder", "licensor"],
+            "url": "https://www.esa.int"
+        }      
+    ]
+
+    if institutions is None:
+        return providers
+
+    try:
+        if isinstance(institutions, str):
+            institutions = [institutions]
+
+        for institution in institutions:
+            ROR_api = "https://api.ror.org/v2/organizations?query=" + "%20".join(
+                institution.lower().split(" ")
+            )
+
+            r = requests.get(ROR_api)
+            if int(r.status_code) >= 300:
+                print("Specific institute not found in ROR API")
+                return providers
+
+            resp = r.json()
+            found = False
+            inst_count = 0
+            while not found and inst_count < 10:
+                names = resp["items"][inst_count]["names"]
+                for entry in names:
+                    if entry["value"].lower() == institution.lower():
+                        found = True
+                        break
+
+                if not found:
+                    inst_count += 1
+
+            if found:
+
+                website = None
+                for l in resp['items'][inst_count]['links']:
+                    if l['type'] == 'website':
+                        website = l['value']
+
+                if website is not None:
+                    providers = [
+                        {
+                            "name": institution,
+                            "roles": ["producer"],
+                            "url": website
+                    }] + providers
+    except:
+        print(f'Unable to identify institution from "{institution}"')
+    return providers
+
+
+def order_properties(properties: dict):
+
+    ORDERED_PROPERTIES = [
+        'datetime',
+        'start_datetime',
+        'end_datetime',
+        'license',
+        'title',
+        'description',
+        'updated',
+        'created',
+        'cci:project',
+        'cci:collections',
+        'cci:drsId',
+        'cci:ecv',
+        'cci:dataType',
+        'cci:sensor',
+        'cci:platform',
+        'cci:platformGroup',
+        'cci:frequency',
+        'cci:product',
+        'cci:productVersion',
+        'cci:institute',
+        'cci:esa_url',
+        'processing:level',
+        'processing:version',
+        'ceda:uuid',
+        'ceda:aggregation',
+        'ceda:opensearch_url',
+        'providers'
+    ]
+
+    new_properties = {}
+    for p in ORDERED_PROPERTIES:
+        if p in properties:
+            new_properties[p] = properties.pop(p)
+
+    # Add any leftovers at the end
+    new_properties = new_properties | properties
+
+    return new_properties
+
+
 def es_connection_kwargs(hosts, api_key, **kwargs):
     """
     Determine Elasticsearch connection kwargs

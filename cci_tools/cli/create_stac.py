@@ -4,10 +4,9 @@ import os
 
 from cci_tools.core.utils import (
     es_client,
-    get_file_query,
     get_dir_query,
 )
-from cci_tools.stac.create_record import single_opensearch_record
+from cci_tools.stac.create_record import single_opensearch_record, handle_process_record
 import logging
 from cci_tools.core.utils import logstream, set_verbose
 
@@ -119,7 +118,6 @@ def main(
         # Loop over OpenSearch records, converting each to STAC format
         failed_list = []
         count_success, count_fail = 0, 0
-        is_last = False
 
         if os.path.isfile(cci_dir):
             if cci_dir.endswith(".txt"):
@@ -156,9 +154,9 @@ def main(
                 print(f"{cci_dir}: No OpenSearch hits found!")
                 continue
 
-            while len(hits) == 10 or not is_last:
-                if len(hits) != 10:
-                    is_last = True
+            is_last = False
+            while hits:
+
                 for record in hits:
                     response = handle_process_record(
                         record,
@@ -178,18 +176,18 @@ def main(
                     else:
                         count_success += 1
 
-                searchAfter = hits[-1]["sort"]
-                body["search_after"] = searchAfter
-                response = es_client.search(index="opensearch-files", body=body)
-                hits = response["hits"]["hits"]
-                if len(hits) == 0:
-                    is_last = True
+                if is_last:
+                    hits = []
+                else:
+                    searchAfter = hits[-1]["sort"]
+                    body["search_after"] = searchAfter
+                    response = es_client.search(index="opensearch-files", body=body)
+                    hits = response["hits"]["hits"]
+                    if len(hits) < 10 and len(hits) > 0:
+                        is_last = True
 
         if len(failed_list) > 0:
-            try:
-                output_failed_files = f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
-            except:
-                output_failed_files = f"{output_dir}/failed_files-no_datasetID.txt"
+            output_failed_files = f"{output_dir}/failed_files_current.txt"
 
             with open(output_failed_files, "w") as file:
                 for item in failed_list:

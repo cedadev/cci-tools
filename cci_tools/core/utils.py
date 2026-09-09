@@ -124,8 +124,8 @@ def get_providers(institutions: list | str):
                             "roles": ["producer"],
                             "url": website
                     }] + providers
-    except:
-        print(f'Unable to identify institution from "{institution}"')
+    except Exception as e:
+        print(f'Unable to identify institution from "{institution}" - {e}')
     return providers
 
 
@@ -328,10 +328,10 @@ def get_opensearch_record(moles_id, drs_id):
 
     try:
         return client.get(url).json()
-    except:
+    except Exception as e:
         # Known issue with moles uuid/collection duplicates:
         # A DRS can be allocated to multiple moles uuids if the `path` matches multiple moles uuids.
-        print(url, "ERROR")
+        print(f'Error retrieving opensearch url "{url}" - {e}')
         return None
 
 

@@ -404,7 +404,7 @@ def process_record(
     all_properties = {
         "datetime": None,
         "title": moles_data['title'],
-        "description": moles_data['abstract'] + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
+        "description": moles_data['abstract'] + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}',
         **core_properties,
         "licence": "other", # "CC-BY-4.0" not allowed
         **cci_properties,

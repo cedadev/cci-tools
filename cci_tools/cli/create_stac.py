@@ -4,10 +4,9 @@ import os
 
 from cci_tools.core.utils import (
     es_client,
-    get_file_query,
     get_dir_query,
 )
-from cci_tools.stac.create_record import single_opensearch_record
+from cci_tools.stac.create_record import single_opensearch_record, handle_process_record
 import logging
 from cci_tools.core.utils import logstream, set_verbose
 
@@ -157,8 +156,7 @@ def main(
                 continue
 
             while len(hits) == 10 or not is_last:
-                if len(hits) != 10:
-                    is_last = True
+
                 for record in hits:
                     response = handle_process_record(
                         record,
@@ -182,14 +180,11 @@ def main(
                 body["search_after"] = searchAfter
                 response = es_client.search(index="opensearch-files", body=body)
                 hits = response["hits"]["hits"]
-                if len(hits) == 0:
+                if len(hits) != 10:
                     is_last = True
 
         if len(failed_list) > 0:
-            try:
-                output_failed_files = f"{output_dir}/failed_files_{record["_source"]["projects"]["opensearch"]["datasetId"]}.txt"
-            except:
-                output_failed_files = f"{output_dir}/failed_files-no_datasetID.txt"
+            output_failed_files = f"{output_dir}/failed_files_current.txt"
 
             with open(output_failed_files, "w") as file:
                 for item in failed_list:

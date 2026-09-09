@@ -369,10 +369,12 @@ def process_record(
                 core_properties[v] = stac_info[v]
 
     ## Version Extraction
-    version = stac_info.get('version',None)
-    numericVersion = version
-    if version.startswith('v'):
-        numericVersion = version[1:]
+    numericVersion = None
+    version = stac_info.get('version',[None])[0]
+    if version is not None:
+        numericVersion = version
+        if version.startswith('v'):
+            numericVersion = version[1:]
 
     ## Handling Different Properties
     cci_properties = {

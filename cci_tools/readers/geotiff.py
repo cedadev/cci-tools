@@ -11,7 +11,8 @@ def read_geotiff(geotiff_file: str, **kwargs):
     """
     Wrapper for accessing geotiffs"""
     with rasterio.open(geotiff_file) as src:
-        access_geotiff(src, geotiff_file, **kwargs)
+        stac_info=access_geotiff(src, geotiff_file, **kwargs)
+        return(stac_info)
 
 
 def access_geotiff(
@@ -129,7 +130,8 @@ def access_geotiff(
         "format": format,
         "transform": transform,
         "epsg": epsg,
-        "shape": shape,
+        "shape": shape, 
+        "properties":properties
     }
 
     return stac_info

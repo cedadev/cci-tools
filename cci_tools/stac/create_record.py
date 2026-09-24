@@ -325,6 +325,7 @@ def process_record(
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
         incomplete = stac_info["properties"].get("incomplete", False)
+        properties = stac_info["properties"]
 
         if not isinstance(stac_info, dict):
             logger.error(

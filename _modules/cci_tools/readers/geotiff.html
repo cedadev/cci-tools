@@ -89,7 +89,8 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Wrapper for accessing geotiffs&quot;&quot;&quot;</span>
     <span class="k">with</span> <span class="n">rasterio</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">geotiff_file</span><span class="p">)</span> <span class="k">as</span> <span class="n">src</span><span class="p">:</span>
-        <span class="n">access_geotiff</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">geotiff_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+        <span class="n">stac_info</span><span class="o">=</span><span class="n">access_geotiff</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">geotiff_file</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span><span class="p">(</span><span class="n">stac_info</span><span class="p">)</span></div>
 
 
 
@@ -210,7 +211,8 @@
         <span class="s2">&quot;format&quot;</span><span class="p">:</span> <span class="nb">format</span><span class="p">,</span>
         <span class="s2">&quot;transform&quot;</span><span class="p">:</span> <span class="n">transform</span><span class="p">,</span>
         <span class="s2">&quot;epsg&quot;</span><span class="p">:</span> <span class="n">epsg</span><span class="p">,</span>
-        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">shape</span><span class="p">,</span>
+        <span class="s2">&quot;shape&quot;</span><span class="p">:</span> <span class="n">shape</span><span class="p">,</span> 
+        <span class="s2">&quot;properties&quot;</span><span class="p">:</span><span class="n">properties</span>
     <span class="p">}</span>
 
     <span class="k">return</span> <span class="n">stac_info</span></div>

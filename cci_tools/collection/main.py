@@ -247,7 +247,7 @@ def add_drs_collection(
         },
         {
             "roles": ["host"],
-            "name": "ESA Open Data Poral (ODP)",
+            "name": "ESA Open Data Portal (ODP)",
             "url": "https://climate.esa.int/data",
         },
     ]
@@ -326,8 +326,8 @@ def add_uuid_collection(
 
     description = set_field(
         moles_stac.get("description"),
-        abstract
-        + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}'
+        moles_info.get('abstract',False)
+        + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}',
         exists=exists, overwrite=overwrite,
     )
 
@@ -337,7 +337,7 @@ def add_uuid_collection(
         "title": set_field(
             moles_stac.get("title"), es_coll_data.get("title"), exists=exists, overwrite=overwrite
         ),
-        "description": description
+        "description": description,
         "extent": moles_stac.get("extent"),
     }
 

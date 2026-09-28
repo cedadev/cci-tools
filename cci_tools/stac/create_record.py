@@ -325,6 +325,7 @@ def process_record(
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
         incomplete = stac_info["properties"].get("incomplete", False)
+        properties = stac_info["properties"]
 
         if not isinstance(stac_info, dict):
             logger.error(
@@ -369,10 +370,12 @@ def process_record(
                 core_properties[v] = stac_info[v]
 
     ## Version Extraction
-    version = stac_info.get('version',None)
-    numericVersion = version
-    if version.startswith('v'):
-        numericVersion = version[1:]
+    numericVersion = None
+    version = stac_info.get('version',[None])[0]
+    if version is not None:
+        numericVersion = version
+        if version.startswith('v'):
+            numericVersion = version[1:]
 
     ## Handling Different Properties
     cci_properties = {
@@ -403,7 +406,7 @@ def process_record(
 
     all_properties = {
         "datetime": None,
-        "title": moles_data['title'],
+        "title": fname,#moles_data['title'],
         "description": moles_data['abstract'] + f'\r\n\n\n See CEDA Catalogue Record for citation details: https://catalogue.ceda.ac.uk/uuid/{uuid}',
         **core_properties,
         "licence": "other", # "CC-BY-4.0" not allowed
@@ -451,7 +454,7 @@ def process_record(
             {"rel": "root", "type": "application/json", "href": stac_api},
             {"rel": "licence", "type": "application/pdf", "href": licence_url}
         ],
-        "assets": {"asset_id": {"href": f"{remote_location}/{fname}", "roles": ["data"]}},
+        "assets": {"asset_id": {"href": f"{os.path.join(remote_location,fname)}", "roles": ["data"]}},
     }
 
     # Remove platform until STAC standards have been updated to allow lists of platforms.

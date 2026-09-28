@@ -57,9 +57,11 @@ def apply_openeo_reqs_for_item(
 
     item_record["properties"]["proj:epsg"] = 4326
     if engine == 'kerchunk':
-        item_record["assets"]["aggregation"]["type"] = "application/vnd.zarr+kerchunk"
+        item_record["assets"]["aggregation"] = {
+            "type":"application/vnd.zarr+kerchunk"}
     else:
-        item_record["assets"]["aggregation"]["type"] = "application/vnd+zarr"
+        item_record["assets"]["aggregation"] = {
+            "type":"application/vnd.zarr"}
         
     item_record["assets"]["aggregation"]["xarray:open_kwargs"] = {
         "engine": engine,

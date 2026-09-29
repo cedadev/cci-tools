@@ -65,12 +65,11 @@ def post_records(post_directory: str | None, post_records: list | None = None, o
             )
 
 
-def post_record(stac_record, summaries):
+def post_record(stac_record: str, summaries):
 
-    if isinstance(stac_record, str):
-        with open(stac_record, "r") as file:
-            # Load STAC record
-            stac_data = json.load(file)
+    with open(stac_record, "r") as file:
+        # Load STAC record
+        stac_data = json.load(file)
     
     # Ensure lower-case collections
     stac_data["collection"] = stac_data["collection"].lower()

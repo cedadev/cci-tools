@@ -45,6 +45,7 @@ def apply_openeo_reqs_for_item(
         openeo=True,
         fmt_override=f"xarray|{engine}",
         collections=["cci_openeo", did],
+        asset_override='aggregation'
     )
 
     item_record["properties"]["license"] = license

@@ -254,6 +254,7 @@ def process_record(
     fmt_override: str = None,
     collections: list = None,
     interval: str = None,
+    asset_override: str | None = None,
     **kwargs,
 ) -> tuple:
 
@@ -338,7 +339,7 @@ def process_record(
         return {"error": "FormatUnrecognised"}, False
 
     ## Asset/ID Extraction
-    asset_id = stac_info["format"]
+    asset_id = asset_override or stac_info["format"]
     drs      = drs or stac_info.get("drs", None) or f"{uuid}-main"
     stac_id  = file_id + f"-{stac_info['format']}"
 
@@ -454,7 +455,7 @@ def process_record(
             {"rel": "root", "type": "application/json", "href": stac_api},
             {"rel": "licence", "type": "application/pdf", "href": licence_url}
         ],
-        "assets": {"asset_id": {"href": f"{os.path.join(remote_location,fname)}", "roles": ["data"]}},
+        "assets": {asset_id: {"href": f"{os.path.join(remote_location,fname)}", "roles": ["data"]}},
     }
 
     # Remove platform until STAC standards have been updated to allow lists of platforms.

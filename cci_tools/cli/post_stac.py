@@ -26,7 +26,7 @@ def main(post_directory, openeo: bool = False, verbose: int = 0):
         with open(path_file) as f:
             post_directory = [r.strip() for r in f.readlines()][int(post_directory)]
 
-    post_records(post_directory, openeo)
+    post_records(post_directory, openeo=openeo)
 
 
 if __name__ == "__main__":

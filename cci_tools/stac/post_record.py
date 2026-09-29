@@ -4,9 +4,7 @@ __contact__ = "diane.knappett@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 import json
-import httpx
-from httpx_auth import OAuth2ClientCredentials
-import click
+import os
 import glob
 
 from cci_tools.core.utils import STAC_API, client, auth
@@ -18,13 +16,17 @@ logger.addHandler(logstream)
 logger.propagate = False
 
 
-def post_records(post_directory: str | None, post_records: list | None, openeo: bool = False):
+def post_records(post_directory: str | None, post_records: list | None = None, openeo: bool = False):
 
     summaries = {}
 
     if post_directory is not None:
-        for record in glob.glob(f"{post_directory}/**/stac*.json", recursive=True):
-            summaries = post_record(record, summaries)
+
+        if os.path.isfile(post_directory):
+            summaries = post_record(post_directory, summaries)
+        elif os.path.isdir(post_directory):
+            for record in glob.glob(f"{post_directory}/**/stac*.json", recursive=True):
+                summaries = post_record(record, summaries)
     elif post_records is not None:
         for record in post_records:
             summaries = post_record(record, summaries)

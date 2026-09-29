@@ -37,7 +37,15 @@ def main(collection_file: str, parent: str = None, verbose: int = 0):
 
     for f in fset:
         collection_file = f
-        collection = collection_file.split("/")[-1].replace(".json", "")
+
+        with open(collection_file) as f:
+            collection_data = json.loads(
+                "".join([r.strip() for r in f.readlines()]).replace(
+                    "STAC_API", STAC_API
+                )
+            )
+
+        collection = collection_data['collection']
 
         post = True
         if client.get(f"{STAC_API}/collections/{collection}").status_code != 404:
@@ -63,13 +71,6 @@ def main(collection_file: str, parent: str = None, verbose: int = 0):
             parent_data["links"] = remove_duplicate_links(parent_data["links"])
 
             client.put(f"{STAC_API}/collections/{parent}", json=parent_data, auth=auth)
-
-        with open(collection_file) as f:
-            collection_data = json.loads(
-                "".join([r.strip() for r in f.readlines()]).replace(
-                    "STAC_API", STAC_API
-                )
-            )
 
         if post:
             resp = client.post(

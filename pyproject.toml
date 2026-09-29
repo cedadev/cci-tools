@@ -42,6 +42,9 @@ new_collection = "cci_tools.cli.add_collection:main"
 # Manually push a new collection or update an existing one.
 update_collection = "cci_tools.cli.manual_collection:main"
 
+# Add aggregations from a csv to main stac collections
+add_aggregations = "cci_tools.cli.add_aggregations:main"
+
 # Create Openeo collection
 create_openeo = "cci_tools.cli.openeo_aggregation:main"
 

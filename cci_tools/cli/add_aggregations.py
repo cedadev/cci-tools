@@ -21,7 +21,7 @@ def handle_quoted_csv(line):
 
 
 @click.command()
-@click.argument("config")
+@click.argument("aggregation_csv", help='Aggregation csv where each line includes <moles_uuid>,<drs_id>,<endpoint>')
 
 def main(config: str):
     with open(config) as f:
@@ -30,14 +30,21 @@ def main(config: str):
     for line in content:
         formatted_line = handle_quoted_csv(line)
 
-        moles_uuid = formatted_line[1]
-        drs_id = formatted_line[2].lower()
+        moles_uuid = formatted_line[0]
+        drs_id = formatted_line[1].lower()
         if drs_id == 'n/a':
             drs_id = None
 
-        endpoint = formatted_line[3]#.replace('https://dap.ceda.ac.uk','')
+        endpoint = formatted_line[2]
 
-        handle_collection_aggregation(endpoint, moles_uuid, drs_id, engine='kerchunk')
+        if '.json' in endpoint:
+            engine = 'kerchunk'
+        elif '.zarr' in endpoint:
+            engine = 'zarr'
+        else:
+            raise ValueError(f'Unknown endpoint type: {endpoint}')
+
+        handle_collection_aggregation(endpoint, moles_uuid, drs_id, engine=engine)
 
 if __name__ == '__main__':
     main()

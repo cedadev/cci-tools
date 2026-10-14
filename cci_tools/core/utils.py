@@ -1,0 +1,476 @@
+__author__ = "Daniel Westwood"
+__contact__ = "daniel.westwood@stfc.ac.uk"
+__copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
+
+import httpx
+import boto3
+import json
+import os
+import requests
+from elasticsearch import Elasticsearch
+from obs import ObsClient
+
+import logging
+
+logging.basicConfig(level=logging.INFO)
+logstream = logging.StreamHandler()
+
+formatter = logging.Formatter("%(levelname)s [%(name)s]: %(message)s")
+logstream.setFormatter(formatter)
+
+dryrun = True
+
+
+def set_verbose(level: int):
+    """
+    Reset the logger basic config.
+    """
+
+    levels = [
+        logging.WARN,
+        logging.INFO,
+        logging.DEBUG,
+    ]
+
+    if level >= len(levels):
+        level = len(levels) - 1
+
+    for name in logging.root.manager.loggerDict:
+        lg = logging.getLogger(name)
+        if "cci_tools" in name:
+            lg.setLevel(levels[level])
+        else:
+            lg.setLevel(levels[max(level - 1, 0)])
+
+
+from httpx_auth import OAuth2ClientCredentials
+
+
+def open_json(file):
+    with open(file) as f:
+        return json.load(f)
+
+
+creds = open_json("AUTH_CREDENTIALS")
+
+obsClient = None
+if os.path.isfile("OBS_CREDENTIALS"):
+    with open("OBS_CREDENTIALS") as f:
+        refs = json.load(f)
+
+    server = "https://obs.eu-nl.otc.t-systems.com/"
+    obsClient = ObsClient(
+        access_key_id=refs["ak"], secret_access_key=refs["sk"], server=server
+    )
+
+auth = OAuth2ClientCredentials(
+    "https://accounts.ceda.ac.uk/realms/ceda/protocol/openid-connect/token",
+    client_id=creds["id"],
+    client_secret=creds["secret"],
+)
+
+
+def get_providers(institutions: list | str):
+
+    providers = [
+        {
+            "name": "European Space Agency (ESA)",
+            "roles": ["funder", "licensor"],
+            "url": "https://www.esa.int"
+        }      
+    ]
+
+    if institutions is None:
+        return providers
+
+    try:
+        if isinstance(institutions, str):
+            institutions = [institutions]
+
+        for institution in institutions:
+            ROR_api = "https://api.ror.org/v2/organizations?query=" + "%20".join(
+                institution.lower().split(" ")
+            )
+
+            r = requests.get(ROR_api)
+            if int(r.status_code) >= 300:
+                print("Specific institute not found in ROR API")
+                return providers
+
+            resp = r.json()
+            found = False
+            inst_count = 0
+            while not found and inst_count < 10:
+                names = resp["items"][inst_count]["names"]
+                for entry in names:
+                    if entry["value"].lower() == institution.lower():
+                        found = True
+                        break
+
+                if not found:
+                    inst_count += 1
+
+            if found:
+
+                website = None
+                for l in resp['items'][inst_count]['links']:
+                    if l['type'] == 'website':
+                        website = l['value']
+
+                if website is not None:
+                    providers = [
+                        {
+                            "name": institution,
+                            "roles": ["producer"],
+                            "url": website
+                    }] + providers
+    except Exception as e:
+        print(f'Unable to identify institution from "{institution}" - {e}')
+    return providers
+
+
+def order_properties(properties: dict):
+
+    ORDERED_PROPERTIES = [
+        'datetime',
+        'start_datetime',
+        'end_datetime',
+        'license',
+        'title',
+        'description',
+        'updated',
+        'created',
+        'cci:project',
+        'cci:collections',
+        'cci:drsId',
+        'cci:ecv',
+        'cci:dataType',
+        'cci:sensor',
+        'cci:platform',
+        'cci:platformGroup',
+        'cci:frequency',
+        'cci:product',
+        'cci:productVersion',
+        'cci:institute',
+        'cci:esa_url',
+        'processing:level',
+        'processing:version',
+        'ceda:uuid',
+        'ceda:aggregation',
+        'ceda:opensearch_url',
+        'providers'
+    ]
+
+    new_properties = {}
+    for p in ORDERED_PROPERTIES:
+        if p in properties:
+            new_properties[p] = properties.pop(p)
+
+    # Add any leftovers at the end
+    new_properties = new_properties | properties
+
+    return new_properties
+
+
+def es_connection_kwargs(hosts, api_key, **kwargs):
+    """
+    Determine Elasticsearch connection kwargs
+    """
+    if isinstance(hosts, list):
+        hosts = hosts[0]
+
+    if hosts == "https://elasticsearch.ceda.ac.uk":
+        return {"hosts": [hosts], "headers": {"x-api-key": api_key}, **kwargs}
+    else:
+        return {"hosts": [hosts], "api_key": api_key, **kwargs}
+
+
+STAC_API = "https://api.stac.164.30.69.113.nip.io"
+s3 = boto3.client("s3")
+
+client = httpx.Client(
+    verify=False,
+    timeout=180,
+)
+
+ES_API_KEY = open_json("API_CREDENTIALS")["secret"]
+ES_HOST = "https://elasticsearch.164.30.69.113.nip.io"
+
+es_client = Elasticsearch(**es_connection_kwargs(hosts=ES_HOST, api_key=ES_API_KEY))
+
+ALLOWED_OPENSEARCH_EXTS = [
+    ".cpg",
+    ".csv",
+    ".dat",
+    ".dbf",
+    ".dsr",
+    ".geojson",
+    ".gz",
+    ".jpg",
+    ".kml",
+    ".lyr",
+    ".nc",
+    ".png",
+    ".prj",
+    ".qpf",
+    ".qml",
+    ".qpj",
+    ".sbn",
+    ".sbx",
+    ".shp",
+    ".shx",
+    ".tar",
+    ".xml",
+    ".zip",
+]
+
+COLLECTION_TEMPLATE = {
+    "id": "test",
+    "description": None,
+    "stac_version": "1.1.0",
+    "stac_extensions": [],
+    "title": None,
+    "type": "Collection",
+    "licence": "other",
+    "links": [{"rel": "root", "type": "application/json", "href": "STAC_API"}],
+    "assets": {
+        "thumbnail": {
+            "roles": ["thumbnail"],
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg",
+        }
+    },
+    "extent": {
+        "spatial": {"bbox": [-180, -90, 180, 90]},
+        "temporal": {"interval": ["2025-01-01T00:00:00Z", "2025-01-01T00:00:01Z"]},
+    },
+    "keywords": [],
+    "providers": [],
+    "summaries": [],
+}
+
+
+def get_licence(ecv: str):
+    """
+    Construct URL to the relevant data licence on the CEDA artefacts server
+    """
+    for licence in [
+        "_terms_and_conditions_v2.pdf",
+        "_terms_and_conditions.pdf",
+        ".pdf",
+    ]:
+        r = requests.get(
+            f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{licence}"
+        )
+        if r.status_code == 200:
+            break
+    url = (
+        f"https://artefacts.ceda.ac.uk/licences/specific_licences/esacci_{ecv}{licence}"
+    )
+
+    return url
+
+
+def get_moles_data(uuid):
+
+    return requests.get(f'https://catalogue.ceda.ac.uk/api/v3/observations/?uuid={uuid}').json()['results'][0]
+
+
+def get_dir_query(directory):
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"prefix": {"info.directory": directory}},
+                    {"exists": {"field": "projects.opensearch"}},
+                ]
+            }
+        },
+        "sort": [{"info.directory": {"order": "asc"}}, {"info.name": {"order": "asc"}}],
+        "size": 10,
+    }
+    return query
+
+
+def get_file_query(file):
+    file = file.split("/")[-1]
+    query = {
+        "query": {
+            "bool": {
+                "must": [
+                    {"prefix": {"info.name": file}},
+                    {"exists": {"field": "projects.opensearch"}},
+                ]
+            }
+        },
+        "sort": [{"info.name": {"order": "asc"}}, {"info.directory": {"order": "asc"}}],
+        "size": 10,
+    }
+    return query
+
+
+def get_item_query(count_aggregations=True):
+
+    query = {"term": {"properties.aggregation": {"value": False}}}
+    if count_aggregations:
+        query = {"match_all": {}}
+
+    body = {
+        "query": query  # ,
+        # "size": 10
+    }
+    return body
+
+
+def get_opensearch_record(moles_id, drs_id):
+
+    url = f"https://archive.opensearch.ceda.ac.uk/opensearch/request?parentIdentifier={moles_id}&drsId={drs_id}&httpAccept=application/geo%2Bjson&maximumRecords=20&startPage=1"
+
+    try:
+        return client.get(url).json()
+    except Exception as e:
+        # Known issue with moles uuid/collection duplicates:
+        # A DRS can be allocated to multiple moles uuids if the `path` matches multiple moles uuids.
+        print(f'Error retrieving opensearch url "{url}" - {e}')
+        return None
+
+
+def count_items(collection, item_aggregations=False, quick_check=False):
+    """
+    Remove all items for a specific collection."""
+
+    body = get_item_query(count_aggregations=item_aggregations)
+    response = es_client.count(index=f"items_{collection}", body=body)
+    items = response["count"]
+
+    if quick_check and len(items) > 0:
+        return True
+
+    return response["count"]
+
+def get_items(
+    collection,
+    item_aggregations=None,
+    quick_check=False,
+    return_items=False,
+    page_size=1000
+):
+    body = get_item_query(count_aggregations=item_aggregations)
+
+    # Default behaviour: return only the count
+    if not return_items:
+        response = es_client.count(
+            index=f"items_{collection}",
+            body=body
+        )
+        
+        if quick_check and response["count"] > 0:
+            return True
+
+        return response["count"]
+
+    # Otherwise: return ALL matching items
+    # search_after requires a stable sort
+    body["sort"] = [{"id": "asc"}]
+
+    all_items = []
+    search_after = None
+
+    while True:
+        if search_after:
+            body["search_after"] = search_after
+
+        response = es_client.search(
+            index=f"items_{collection}",
+            body=body
+            )
+
+        hits = response["hits"]["hits"]
+        if not hits:
+            break
+
+        all_items.extend(hit["_source"]["id"] for hit in hits)
+
+        # Prepare next page
+        search_after = hits[-1]["sort"]
+
+    return all_items
+
+def recursive_find(
+    collection,
+    collection_summary,
+    item_aggregations=False,
+    depth=0,
+    current_depth=1,
+    quick_check=False,
+    return_items=False,
+    count_all=False,
+):
+    """
+    Remove collections recursively so no collections are left orphaned.
+
+    This is less of an issue with collections vs items, but still with the large
+    range of CCI collections this is important as orphaned collections may easily
+    be 'lost'."""
+
+    resp = client.get(collection)
+
+    if resp.status_code == 404:
+        return False, collection_summary
+
+    coll_data = resp.json()
+
+    collection_name = collection.split("/")[-1]
+
+    try:
+        item_count = get_items(
+            collection_name,
+            item_aggregations=item_aggregations,
+            quick_check=quick_check,
+            return_items=return_items,
+            page_size=1000
+        )
+#        item_count = count_items(
+#            collection_name,
+#            item_aggregations=item_aggregations,
+#            quick_check=quick_check,
+#        )
+    except Exception as e:
+        raise e
+
+    child_count = 0
+    missing = 0
+    for link in coll_data["links"]:
+        if link["rel"] == "child":
+            exists, collection_summary = recursive_find(
+                link["href"],
+                collection_summary,
+                item_aggregations=item_aggregations,
+                depth=depth,
+                current_depth=current_depth + 1,
+                quick_check=quick_check,
+                return_items=return_items,
+                count_all=count_all,
+            )
+            if exists:
+                child_count += 1
+            else:
+                missing += 1
+
+            if count_all:
+                item_count += exists
+
+    if current_depth == depth:
+        collection_summary.append((collection.split("/")[-1], item_count))
+
+    if missing > 0:
+        print(f' > {collection.split("/")[-1]} Missing: {missing}')
+
+    if depth == current_depth or depth == 0:
+        if isinstance(item_count, list):
+            for item in item_count:
+                print(item)
+        else:
+            print(f"{collection.split('/')[-1]}: {item_count}")
+
+    return item_count, collection_summary

@@ -1,0 +1,68 @@
+{
+    "id": "reccap2",
+    "description": "The RECCAP-2 Climate Space project refines greenhouse gas budgets for critical regions of the globe, supporting climate goals with advanced satellite and atmospheric data.",
+    "stac_version": "1.1.0",
+    "stac_extensions": [],
+    "title": "RECCAP-2",
+    "type": "Collection",
+    "license": "other",
+    "links": [
+        {
+            "rel": "root",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io"
+        },
+        {
+            "rel": "parent",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/cci"
+        },
+        {
+            "rel": "self",
+            "type": "application/json",
+            "href": "https://api.stac.164.30.69.113.nip.io/collections/reccap2"
+        }
+    ],
+    "assets": {
+        "thumbnail": {
+            "roles": [
+                "thumbnail"
+            ],
+            "href": "https://brand.esa.int/files/2020/05/ESA_logo_2020_Deep-1024x643.jpg",
+            "type": "image/jpg"
+        }
+    },
+    "extent": {
+        "spatial": {
+            "bbox": [
+                [
+                    -180,
+                    -90,
+                    180,
+                    90
+                ]
+            ]
+        },
+        "temporal": {
+            "interval": [
+                [
+                    "1992-01-01T00:00:00Z",
+                    "2020-12-31T23:59:59Z"
+                ]
+            ]
+        }
+    },
+    "keywords": [
+        "ESACCI",
+        "reccap2",
+        "giems",
+        "wetland",
+        "methane"
+    ],
+    "providers": [],
+    "summaries": {
+        "project": [
+            "RECCAP-2"
+        ]
+    }
+}

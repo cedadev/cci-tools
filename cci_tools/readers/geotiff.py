@@ -115,9 +115,6 @@ def access_geotiff(
 
     properties = {"proj:transform": transform, "proj:epsg": epsg, "proj:shape": shape}
 
-    if incomplete:
-        properties["incomplete"] = True
-
     stac_info = {
         "start_datetime": start_datetime,
         "end_datetime": end_datetime,
@@ -128,10 +125,10 @@ def access_geotiff(
         "geo_type": geo_type,
         "coordinates": coordinates,
         "format": format,
-        "transform": transform,
-        "epsg": epsg,
-        "shape": shape, 
-        "properties":properties
+        "extra_properties": properties
     }
+
+    if incomplete:
+        stac_info[incomplete] = True
 
     return stac_info

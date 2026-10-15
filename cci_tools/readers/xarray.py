@@ -51,27 +51,22 @@ def scrape_xarray(location, endpoint, engine, drs, collections):
     if platform is not None:
         platform = [platform]
 
-    properties = {
-        "datetime": None,
-        "created": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "updated": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    stac_info = {
         "start_datetime": start_datetime,
         "end_datetime": end_datetime,
-        "license": "other",
         "version": vn,
         "aggregation": True,
         "platforms": platform,
-        "collections": collections,
-        "proj:transform": None,
-        "proj:epsg": "4326",
-        "proj:shape": (len(ds.time), len(ds.lat), len(ds.lon)),
-    }
-
-    return {
+        "extra_properties":{
+            "proj:transform": None,
+            "proj:epsg": "4326",
+            "proj:shape": (len(ds.time), len(ds.lat), len(ds.lon))
+        },
         "drs": drs,
         "bbox": bbox,
         "geo_type": geo_type,
         "coordinates": coordinates,
-        "properties": properties,
-        "format": engine,
+        "format": engine
     }
+
+    return stac_info

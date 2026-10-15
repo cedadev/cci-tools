@@ -309,15 +309,15 @@ def get_file_query(file):
     return query
 
 
-def get_item_query(count_aggregations=True):
+def get_item_query(count_aggregations=True, page_size: int = 10):
 
     query = {"term": {"properties.aggregation": {"value": False}}}
     if count_aggregations:
         query = {"match_all": {}}
 
     body = {
-        "query": query  # ,
-        # "size": 10
+        "query": query,  # ,
+        "size": page_size
     }
     return body
 
@@ -353,9 +353,10 @@ def get_items(
     item_aggregations=None,
     quick_check=False,
     return_items=False,
+    full_items=False,
     page_size=1000
 ):
-    body = get_item_query(count_aggregations=item_aggregations)
+    body = get_item_query(count_aggregations=item_aggregations, page_size=page_size)
 
     # Default behaviour: return only the count
     if not return_items:
@@ -383,17 +384,21 @@ def get_items(
         response = es_client.search(
             index=f"items_{collection}",
             body=body
-            )
+        )
 
         hits = response["hits"]["hits"]
         if not hits:
+            print('No hits')
             break
 
-        all_items.extend(hit["_source"]["id"] for hit in hits)
-
+        if not full_items:
+            all_items.extend(hit["_source"]["id"] for hit in hits)
+        else:
+            all_items += [hit["_source"] for hit in hits]
         # Prepare next page
         search_after = hits[-1]["sort"]
 
+    print(len(all_items))
     return all_items
 
 def recursive_find(

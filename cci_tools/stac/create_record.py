@@ -4,7 +4,7 @@ __contact__ = "diane.knappett@stfc.ac.uk"
 __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 import json
-import requests
+from datetime import datetime
 import os
 
 from cci_tools.readers.geotiff import read_geotiff
@@ -109,21 +109,9 @@ def extract_opensearch(es_all_dict: dict):
         platforms = "Unknown"
         drs = None
 
-    # Extract all other properties
-    properties = dict()
-    try:
-        for property, value in es_all_dict["projects"]["opensearch"].items():
-            if isinstance(value, list) and len(value) == 1:
-                value = value[0]
-            properties[property] = value
-    except Exception as err:
-        logger.info(f"Exception when fetching properties: {err}")
 
     # Extract format
     format = es_all_dict.get("info", {}).get("format")
-
-    if incomplete:
-        properties["incomplete"] = True
 
     stac_info = {
         "start_datetime": start_datetime,
@@ -134,11 +122,13 @@ def extract_opensearch(es_all_dict: dict):
         "bbox": bbox,
         "geo_type": geo_type,
         "coordinates": coordinates,
-        "properties": properties,
+        "extra_properties": {},
         "format": format,
     }
+    if incomplete:
+        stac_info["incomplete"] = True
 
-    return stac_info, properties
+    return stac_info
 
 
 def single_opensearch_record(
@@ -285,29 +275,12 @@ def process_record(
     ## File Metadata Extraction
 
     fmt_override = fmt_override or ""
-    if "xarray" in fmt_override:
+    if "xarray" in fmt_override: # For kerchunk or zarr aggregations mostly.
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
-        properties = stac_info["properties"]
 
         # Xarray scraping includes projection information
+        # Includes proj:transform etc.
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
-
-    elif file_ext in ALLOWED_OPENSEARCH_EXTS:
-        # Information can only be extracted from OpenSearch record
-
-        stac_info, properties = extract_opensearch(es_all_dict)
-        incomplete = stac_info["properties"].get("incomplete", False)
-
-        if stac_info["format"] == None:
-            stac_info["format"] = (file_ext[1:]).upper()
-
-        stac_info["format"] = stac_info["format"].replace(" ", "_")
-
-        if not isinstance(stac_info, dict):
-            logger.error(
-                "OpenSearch record does not contain the required information to create a STAC record."
-            )
-            return {"error": "InsufficientInformation"}, incomplete
 
     elif file_ext == ".tif" or file_ext == ".TIF":
         # === GeoTIFF ===
@@ -323,10 +296,10 @@ def process_record(
         )
 
         # Geotiff scraping includes projection information
+        # Includes proj:transform etc.
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
-        incomplete = stac_info["properties"].get("incomplete", False)
-        properties = stac_info["properties"]
+        incomplete = stac_info.get("incomplete", False)
 
         if not isinstance(stac_info, dict):
             logger.error(
@@ -334,9 +307,41 @@ def process_record(
             )
             return {"error": "InsufficientInformation"}, incomplete
 
+    elif file_ext in ALLOWED_OPENSEARCH_EXTS:
+        # Information can only be extracted from OpenSearch record
+        # Does not include projections
+
+        stac_info = extract_opensearch(es_all_dict)
+        incomplete = stac_info.get("incomplete", False)
+
+        if stac_info["format"] == None:
+            stac_info["format"] = (file_ext[1:]).upper()
+
+        stac_info["format"] = stac_info["format"].replace(" ", "_")
+
+        if not isinstance(stac_info, dict):
+            logger.error(
+                "OpenSearch record does not contain the required information to create a STAC record."
+            )
+            return {"error": "InsufficientInformation"}, incomplete
+
     else:
         logger.error(f"File format {file_ext} not recognised!")
         return {"error": "FormatUnrecognised"}, False
+
+    ## STAC INFO includes:
+    # format
+    # drs
+    # version
+    # platforms
+    # geo_type
+    # coords
+    # bbox
+    # start_datetime
+    # end_datetime
+    # incomplete
+    # extra_properties - expanded at end
+    
 
     ## Asset/ID Extraction
     asset_id = asset_override or stac_info["format"]
@@ -361,14 +366,13 @@ def process_record(
                 logger.warning("No splitting identified for this item")
 
     ## Core Properties Extraction
-    vals = ["start_datetime", "end_datetime", "file_type"]
-    core_properties = {}
-    for v in vals:
-        if not properties.get(v, None):
-            if v == "file_type":
-                core_properties[v] = stac_info["format"]
-            else:
-                core_properties[v] = stac_info[v]
+    core_properties = {
+        'start_datetime': stac_info['start_datetime'],
+        'end_datetime': stac_info['end_datetime'],
+        'file_type': stac_info['format'],
+        "created": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "updated": datetime.now().strftime("%Y-%m-%dT%H:%M:%SZ"),
+    }
 
     ## Version Extraction
     numericVersion = None
@@ -415,7 +419,7 @@ def process_record(
         **ceda_properties,
         **processing_properties,
         'providers': get_providers(es_all_dict["projects"]["opensearch"].get('institute')),
-        **properties, # Any other properties from alternative sources
+        **stac_info['extra_properties']
     }
 
     ## Create STAC Dictionary
@@ -457,13 +461,6 @@ def process_record(
         ],
         "assets": {asset_id: {"href": f"{os.path.join(remote_location,fname)}", "roles": ["data"]}},
     }
-
-    # Remove platform until STAC standards have been updated to allow lists of platforms.
-    # Until then, the platform list is entered as 'platforms' instead.
-    if "platform" in stac_dict["properties"] or file_ext == ".nc":
-        stac_dict["properties"].pop("platform")
-    if "platformGroup" in stac_dict["properties"] or file_ext == ".nc":
-        stac_dict["properties"].pop("platformGroup")
 
     return stac_dict, incomplete
 

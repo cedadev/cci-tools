@@ -4,7 +4,7 @@ __copyright__ = "Copyright 2025 United Kingdom Research and Innovation"
 
 # Click-based script for interfacing with the cci_tools library
 # to create new collections in the nested cci structure.
-from cci_tools.core.utils import client, auth, STAC_API
+from cci_tools.core.utils import client, auth, STAC_API, ES_API_KEY
 from cci_tools.collection.main import (
     create_project_collection,
     add_drs_collection,
@@ -79,8 +79,8 @@ def main(
 
     set_verbose(verbose)
 
-    api_key = os.environ.get("ES_API_KEY")
-    if not api_key:
+
+    if not ES_API_KEY:
         print('Warning: API Key not loaded, please set with "export ES_API_KEY=..."')
 
     presp = client.get(f"{STAC_API}/collections/{parent}")
@@ -98,7 +98,7 @@ def main(
 
             for label in project_labels:
                 pdata, added = create_project_collection(
-                    label, pdata, overwrite=overwrite, api_key=api_key, dryrun=dryrun
+                    label, pdata, overwrite=overwrite, api_key=ES_API_KEY, dryrun=dryrun
                 )
 
         case "project":
@@ -107,12 +107,12 @@ def main(
                 pdata,
                 dataset_collection=dataset_collection,
                 overwrite=overwrite,
-                api_key=api_key,
+                api_key=ES_API_KEY,
                 dryrun=dryrun,
             )
         case "moles":
             pdata, added = add_uuid_collection(
-                pdata, child, overwrite=overwrite, dryrun=dryrun, api_key=api_key
+                pdata, child, overwrite=overwrite, dryrun=dryrun, api_key=ES_API_KEY
             )
         case "drs":
             pdata, added = add_drs_collection(

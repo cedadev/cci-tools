@@ -460,10 +460,8 @@ def process_record(
 
     # Remove platform until STAC standards have been updated to allow lists of platforms.
     # Until then, the platform list is entered as 'platforms' instead.
-    if "platform" in stac_dict["properties"] or file_ext == ".nc":
-        stac_dict["properties"].pop("platform")
-    if "platformGroup" in stac_dict["properties"] or file_ext == ".nc":
-        stac_dict["properties"].pop("platformGroup")
+    stac_dict["properties"].pop("platform",None)
+    stac_dict["properties"].pop("platformGroup", None)
 
     return stac_dict, incomplete
 

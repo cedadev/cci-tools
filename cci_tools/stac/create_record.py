@@ -279,6 +279,7 @@ def process_record(
         stac_info = scrape_xarray(location, fname, fmt_override, drs, collections)
 
         # Xarray scraping includes projection information
+        # Includes proj:transform etc.
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
     elif file_ext == ".tif" or file_ext == ".TIF":
@@ -295,6 +296,7 @@ def process_record(
         )
 
         # Geotiff scraping includes projection information
+        # Includes proj:transform etc.
         exts.append("https://stac-extensions.github.io/projection/v1.1.0/schema.json")
 
         incomplete = stac_info.get("incomplete", False)
@@ -307,6 +309,7 @@ def process_record(
 
     elif file_ext in ALLOWED_OPENSEARCH_EXTS:
         # Information can only be extracted from OpenSearch record
+        # Does not include projections
 
         stac_info = extract_opensearch(es_all_dict)
         incomplete = stac_info.get("incomplete", False)
